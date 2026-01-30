@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, X, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
+import api from '../utils/api';
 import '../styles/AIChat.css';
 
 const AIChat = () => {
@@ -24,32 +25,8 @@ const AIChat = () => {
         setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:5000/api/ai/counsellor/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userMsg.content }),
-                credentials: 'include'
-            });
-
-            const data = await res.json();
-
-            // Handle error responses
-            if (!res.ok) {
-                let errorMessage = data.error || "Sorry, I'm having trouble right now.";
-
-                // Provide user-friendly messages for specific error codes
-                if (data.code === 'API_KEY_MISSING') {
-                    errorMessage = "⚠️ AI Service Configuration Error: The Gemini API key is not configured. Please contact the administrator.";
-                } else if (data.code === 'NETWORK_ERROR') {
-                    errorMessage = "🌐 Network Error: Unable to reach the AI service. Please check your internet connection.";
-                } else if (data.code === 'API_ERROR') {
-                    errorMessage = "⚡ AI Service Error: The AI service returned an error. Please try again later.";
-                }
-
-                setMessages(prev => [...prev, { role: 'ai', content: errorMessage, isError: true }]);
-                setLoading(false);
-                return;
-            }
+            const res = await api.post('/ai/counsellor/chat', { message: userMsg.content });
+            const data = res.data;
 
             // Construct AI message from structured response
             const aiMsg = {
@@ -62,9 +39,24 @@ const AIChat = () => {
             setMessages(prev => [...prev, aiMsg]);
         } catch (err) {
             console.error(err);
+
+            let errorMessage = "Sorry, I'm having trouble right now.";
+            if (err.response && err.response.data) {
+                const data = err.response.data;
+                errorMessage = data.error || errorMessage;
+
+                if (data.code === 'API_KEY_MISSING') {
+                    errorMessage = "⚠️ AI Service Configuration Error: The Gemini API key is not configured. Please contact the administrator.";
+                } else if (data.code === 'NETWORK_ERROR') {
+                    errorMessage = "🌐 Network Error: Unable to reach the AI service. Please check your internet connection.";
+                } else if (data.code === 'API_ERROR') {
+                    errorMessage = "⚡ AI Service Error: The AI service returned an error. Please try again later.";
+                }
+            }
+
             setMessages(prev => [...prev, {
                 role: 'ai',
-                content: "❌ Connection Error: Unable to connect to the server. Please make sure the backend is running.",
+                content: errorMessage,
                 isError: true
             }]);
         } finally {

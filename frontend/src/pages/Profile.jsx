@@ -6,6 +6,7 @@ import {
     BookOpen, Award, TrendingUp, ArrowLeft, Edit, Save, X, Briefcase, FileText, Sparkles, BrainCircuit
 } from 'lucide-react';
 import ProfileMenu from '../components/ProfileMenu';
+import api from '../utils/api';
 import '../styles/Profile.css';
 
 const Profile = () => {
@@ -22,12 +23,12 @@ const Profile = () => {
     const fetchProfile = async () => {
         try {
             // Get user auth details
-            const authRes = await fetch('http://localhost:5000/api/auth/me', { credentials: 'include' });
-            const authData = await authRes.json();
+            const authRes = await api.get('/auth/me');
+            const authData = authRes.data;
 
             // Get profile details
-            const profileRes = await fetch('http://localhost:5000/api/profile', { credentials: 'include' });
-            const profileData = await profileRes.json();
+            const profileRes = await api.get('/profile');
+            const profileData = profileRes.data;
 
             // Combine data
             const fullProfile = {
@@ -54,18 +55,10 @@ const Profile = () => {
 
     const handleSave = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/profile', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-                credentials: 'include'
-            });
-
-            if (res.ok) {
-                const updatedData = await res.json();
-                setProfile(prev => ({ ...prev, details: updatedData.profile }));
-                setIsEditing(false);
-            }
+            const res = await api.put('/profile', formData);
+            const updatedData = res.data;
+            setProfile(prev => ({ ...prev, details: updatedData.profile }));
+            setIsEditing(false);
         } catch (err) {
             console.error('Failed to update profile:', err);
         }

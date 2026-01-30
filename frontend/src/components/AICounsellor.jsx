@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Send, Sparkles, X, ChevronRight, MessageSquare, Briefcase, BookOpen, User, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../utils/api';
 import '../styles/AICounsellor.css';
 
 // Stage ID to Enum mapping
@@ -38,11 +39,8 @@ const AICounsellor = () => {
     useEffect(() => {
         const fetchStatus = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/user/status', { credentials: 'include' });
-                if (res.ok) {
-                    const data = await res.json();
-                    setUserStatus(data);
-                }
+                const res = await api.get('/user/status');
+                setUserStatus(res.data);
             } catch (err) {
                 console.error("Failed to fetch user status:", err);
             }
@@ -101,18 +99,13 @@ const AICounsellor = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/ai/counsellor/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: msgText,
-                    stage: stageEnum,  // Pass stage to AI
-                    profileCompletion: userStatus?.profileCompletion || 0
-                }),
-                credentials: 'include'
+            const response = await api.post('/ai/counsellor/chat', {
+                message: msgText,
+                stage: stageEnum,  // Pass stage to AI
+                profileCompletion: userStatus?.profileCompletion || 0
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             // Handle Response (Message) - clean display
             const content = data.message || data.ai_message || "I'm here to help!";

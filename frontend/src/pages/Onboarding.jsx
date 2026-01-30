@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Globe, User, GraduationCap, DollarSign, BookOpen, ArrowRight, CheckCircle } from 'lucide-react';
+import api from '../utils/api';
 import '../styles/Auth.css';
 
 const Onboarding = () => {
@@ -31,26 +32,16 @@ const Onboarding = () => {
                 test_scores: { ielts: formData.ielts, sat: formData.sat }
             };
 
-            const response = await fetch('http://localhost:5000/api/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'token': token
-                },
-                body: JSON.stringify(payload)
-            });
+            const response = await api.put('/profile', payload);
+            const data = response.data;
 
-            const data = await response.json();
+            // Update local auth state with new stage (3 for completed onboarding?)
+            login(token, data.stage);
+            navigate('/dashboard');
 
-            if (response.ok) {
-                // Update local auth state with new stage (3 for completed onboarding?)
-                login(token, data.stage);
-                navigate('/dashboard');
-            } else {
-                alert('Failed to update profile');
-            }
         } catch (err) {
             console.error(err);
+            alert('Failed to update profile');
         } finally {
             setIsLoading(false);
         }

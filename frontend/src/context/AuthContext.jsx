@@ -1,30 +1,24 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import api from '../utils/api';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [stage, setStage] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [userStage, setUserStage] = useState(1);
 
-    const checkSession = async () => {
+    // Check strict auth status
+    const checkAuth = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/auth/me', {
-                method: 'GET',
-                credentials: 'include' // Send cookie
-            });
-
-            const parseRes = await response.json();
-
-            if (parseRes.isAuthenticated) {
+            const response = await api.get('/auth/me');
+            if (response.data.isAuthenticated) {
                 setIsAuthenticated(true);
-                setStage(parseRes.stage);
+                setUserStage(response.data.user.current_stage_id || 1);
             } else {
                 setIsAuthenticated(false);
-                setStage(null);
             }
         } catch (err) {
-            console.error(err);
             setIsAuthenticated(false);
         } finally {
             setLoading(false);
@@ -32,35 +26,33 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        checkSession();
+        checkAuth();
     }, []);
 
-    const login = (token, userStage) => {
-        // Token is set in cookie by backend, we just update state
-        // The 'token' argument is kept for compatibility but not used for storage
+    const login = (token, stage) => {
         setIsAuthenticated(true);
-        setStage(userStage);
+        setUserStage(stage);
+        // We don't need to store token in localStorage as we use HTTP-only cookies
     };
 
     const logout = async () => {
         try {
-            await fetch('http://localhost:5000/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
+            await api.post('/auth/logout');
             setIsAuthenticated(false);
-            setStage(null);
+            setUserStage(1);
         } catch (err) {
-            console.error(err);
+            console.error("Logout failed", err);
         }
     };
 
-    if (loading) {
-        return <div>Loading...</div>; // Simple loading state
-    }
+    const advanceStage = (newStage) => {
+        if (newStage > userStage) {
+            setUserStage(newStage);
+        }
+    };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, stage, login, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, loading, login, logout, userStage, advanceStage }}>
             {children}
         </AuthContext.Provider>
     );

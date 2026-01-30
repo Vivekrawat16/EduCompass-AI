@@ -5,6 +5,7 @@ import { Range, getTrackBackground } from 'react-range';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ProfileMenu from '../components/ProfileMenu';
+import api from '../utils/api';
 import '../styles/UniversityDiscovery.css';
 
 const UniversityDiscovery = () => {
@@ -27,15 +28,15 @@ const UniversityDiscovery = () => {
     const fetchUniversities = async () => {
         setLoading(true);
         try {
-            const query = new URLSearchParams({
+            const params = {
                 search,
                 country: selectedCountry,
                 max_tuition: tuitionRange[0],
                 max_ranking: rankingLimit
-            }).toString();
+            };
 
-            const response = await fetch(`http://localhost:5000/api/universities?${query}`, { credentials: 'include' });
-            const data = await response.json();
+            const response = await api.get('/universities', { params });
+            const data = response.data;
 
             if (Array.isArray(data)) {
                 // Deduplicate by Name to prevent visual duplicates
@@ -57,9 +58,8 @@ const UniversityDiscovery = () => {
     // Fetch Shortlist (to show heart status)
     const fetchShortlist = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/universities/shortlist', { credentials: 'include' });
-            const data = await response.json();
-            setShortlist(data.map(item => item.university_id));
+            const response = await api.get('/universities/shortlist');
+            setShortlist(response.data.map(item => item.university_id));
         } catch (err) {
             console.error(err);
         }
@@ -83,12 +83,7 @@ const UniversityDiscovery = () => {
             if (shortlist.includes(uniId)) {
                 alert("Already in shortlist! Go to Dashboard to manage.");
             } else {
-                await fetch('http://localhost:5000/api/universities/shortlist', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ university_id: uniId }),
-                    credentials: 'include'
-                });
+                await api.post('/universities/shortlist', { university_id: uniId });
                 setShortlist([...shortlist, uniId]);
             }
         } catch (err) {
@@ -99,20 +94,16 @@ const UniversityDiscovery = () => {
     // Handle Lock (Final Application)
     const handleLock = async (uni) => {
         try {
-            const response = await fetch('http://localhost:5000/api/lock', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ university_id: uni.id, university_data: uni }),
-                credentials: 'include'
+            const response = await api.post('/lock', {
+                university_id: uni.id,
+                university_data: uni
             });
-            if (response.ok) {
-                navigate('/dashboard');
-                alert("University Locked! Application Started.");
-            } else {
-                alert("Could not lock university.");
-            }
+
+            navigate('/dashboard');
+            alert("University Locked! Application Started.");
         } catch (err) {
             console.error(err);
+            alert("Could not lock university.");
         }
     };
 

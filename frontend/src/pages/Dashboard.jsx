@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ProfileMenu from '../components/ProfileMenu';
 import StageProgressTracker from '../components/StageProgressTracker';
+import api from '../utils/api';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
@@ -29,15 +30,12 @@ const Dashboard = () => {
     const fetchData = async () => {
         try {
             const [dashRes, statusRes] = await Promise.all([
-                fetch('http://localhost:5000/api/dashboard/summary', { credentials: 'include' }),
-                fetch('http://localhost:5000/api/user/status', { credentials: 'include' })
+                api.get('/dashboard/summary'),
+                api.get('/user/status')
             ]);
 
-            const dashData = await dashRes.json();
-            const statusData = await statusRes.json();
-
-            setData(dashData);
-            setUserStatus(statusData);
+            setData(dashRes.data);
+            setUserStatus(statusRes.data);
         } catch (err) {
             console.error("Dashboard error:", err);
         } finally {
@@ -54,12 +52,16 @@ const Dashboard = () => {
             tasks: prev.tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t)
         }));
 
-        await fetch(`http://localhost:5000/api/dashboard/tasks/${taskId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus }),
-            credentials: 'include'
-        });
+        try {
+            await api.put(`/dashboard/tasks/${taskId}`, { status: newStatus });
+        } catch (err) {
+            console.error("Failed to update task", err);
+            // Revert optimistic update
+            setData(prev => ({
+                ...prev,
+                tasks: prev.tasks.map(t => t.id === taskId ? { ...t, status: currentStatus } : t)
+            }));
+        }
     };
 
     useEffect(() => {

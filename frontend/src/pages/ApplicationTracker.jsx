@@ -5,6 +5,7 @@ import { Calendar, FileText, MoreHorizontal, Plus, Globe, LayoutDashboard, Searc
 import { Link } from 'react-router-dom';
 import ProfileMenu from '../components/ProfileMenu';
 import ApplicationGuidance from '../components/ApplicationGuidance';
+import api from '../utils/api';
 import '../styles/ApplicationTracker.css';
 
 const COLUMNS = [
@@ -74,9 +75,8 @@ const ApplicationTracker = () => {
 
     const fetchApps = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/applications', { credentials: 'include' });
-            const data = await res.json();
-            setApplications(data);
+            const res = await api.get('/applications');
+            setApplications(res.data);
         } catch (err) {
             console.error(err);
         }
@@ -84,8 +84,8 @@ const ApplicationTracker = () => {
 
     const fetchLocked = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/lock/all', { credentials: 'include' });
-            const data = await res.json();
+            const res = await api.get('/lock/all');
+            const data = res.data;
             setLockedUniversities(data);
             if (data.length > 0 && !selectedLocked) {
                 setSelectedLocked(data[0]);
@@ -120,12 +120,7 @@ const ApplicationTracker = () => {
 
         // API Call
         try {
-            await fetch(`http://localhost:5000/api/applications/${appId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus }),
-                credentials: 'include'
-            });
+            await api.put(`/applications/${appId}`, { status: newStatus });
         } catch (err) {
             console.error("Failed to update status", err);
             fetchApps(); // Revert

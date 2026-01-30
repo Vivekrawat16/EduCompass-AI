@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, GraduationCap, Globe, DollarSign, BrainCircuit, Sparkles } from 'lucide-react';
+import api from '../utils/api';
 import '../styles/OnboardingWizard.css';
 
 // Helper Component for Dropdown with "Other" input
@@ -89,39 +90,27 @@ const OnboardingWizard = () => {
     const nextStep = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/profile/save-step', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ step, data: formData }),
-                credentials: 'include'
-            });
+            const response = await api.post('/profile/save-step', { step, data: formData });
+            const result = response.data;
 
-            const result = await response.json();
+            if (step < 5) {
+                setStep(prev => prev + 1);
 
-            if (response.ok) {
-                if (step < 5) {
-                    setStep(prev => prev + 1);
+                // Trigger AI Analysis for the completed step
+                window.dispatchEvent(new CustomEvent('ai-analyze', {
+                    detail: { step: step, data: formData }
+                }));
 
-                    // Trigger AI Analysis for the completed step
-                    window.dispatchEvent(new CustomEvent('ai-analyze', {
-                        detail: { step: step, data: formData }
-                    }));
-
-                } else {
-                    if (result.stage === 3) {
-                        window.location.href = '/dashboard';
-                    } else {
-                        navigate('/dashboard');
-                    }
-                }
             } else {
-                console.error("Failed to save step");
+                if (result.stage === 3) {
+                    window.location.href = '/dashboard';
+                } else {
+                    navigate('/dashboard');
+                }
             }
 
         } catch (err) {
-            console.error(err);
+            console.error("Failed to save step", err);
         } finally {
             setLoading(false);
         }

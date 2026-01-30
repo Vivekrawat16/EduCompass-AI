@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
+import api, { GOOGLE_AUTH_URL } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Globe, ArrowRight, Sparkles } from 'lucide-react';
+import { Globe, ArrowRight, Lock, Check } from 'lucide-react';
 import '../styles/Auth.css';
 
 const Signup = () => {
+    const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
@@ -14,25 +17,26 @@ const Signup = () => {
 
     const handleSignup = async (e) => {
         e.preventDefault();
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-                credentials: 'include'
+            const response = await api.post('/auth/register', {
+                full_name: fullName,
+                email,
+                password
             });
 
-            const data = await response.json();
+            const data = response.data;
+            login(data.token, 1); // Stage 1: Auth Done
+            navigate('/onboarding'); // Go to Profile Setup
 
-            if (response.ok) {
-                login(data.token, data.stage);
-                navigate('/dashboard'); // Normally to onboarding, but handled by protected route check
-            } else {
-                setError(data.error || 'Signup failed');
-            }
         } catch (err) {
-            setError('Server connection failed');
+            setError(err.response?.data?.error || 'Registration failed');
         } finally {
             setIsLoading(false);
         }
@@ -47,8 +51,8 @@ const Signup = () => {
                 </div>
 
                 <div className="auth-header">
-                    <h2>Start Your Journey</h2>
-                    <p>Create your profile to get AI-powered university recommendations.</p>
+                    <h2>Create Account</h2>
+                    <p>Start your journey to your dream university today.</p>
                 </div>
 
                 {error && <div className="error-msg">{error}</div>}
@@ -56,7 +60,7 @@ const Signup = () => {
                 <button
                     type="button"
                     className="google-btn"
-                    onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}
+                    onClick={() => window.location.href = GOOGLE_AUTH_URL}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

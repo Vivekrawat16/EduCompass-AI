@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
     User, ChevronDown, LogOut, Settings, Eye, Edit, CheckCircle, AlertCircle
 } from 'lucide-react';
+import api from '../utils/api';
 import '../styles/ProfileMenu.css';
 
 const ProfileMenu = () => {
@@ -18,16 +19,12 @@ const ProfileMenu = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/auth/me', {
-                    credentials: 'include'
-                });
-                const data = await response.json();
+                const response = await api.get('/auth/me');
+                const data = response.data;
 
                 // Fetch additional profile details
-                const profileRes = await fetch('http://localhost:5000/api/dashboard/summary', {
-                    credentials: 'include'
-                });
-                const profileData = await profileRes.json();
+                const profileRes = await api.get('/dashboard/summary');
+                const profileData = profileRes.data;
 
                 setUserProfile({
                     email: data.email,
@@ -85,10 +82,7 @@ const ProfileMenu = () => {
 
     const handleLogout = async () => {
         try {
-            await fetch('http://localhost:5000/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
+            await api.post('/auth/logout');
             logout();
             navigate('/');
         } catch (err) {
