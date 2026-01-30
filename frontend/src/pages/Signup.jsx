@@ -98,6 +98,17 @@ const Signup = () => {
                             required
                         />
                     </div>
+                    <div className="form-group">
+                        <label>Confirm Password</label>
+                        <input
+                            className="auth-input"
+                            type="password"
+                            placeholder="Re-enter password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                        />
+                    </div>
 
                     <button type="submit" className="btn-primary-glow" disabled={isLoading}>
                         {isLoading ? 'Creating Account...' : (
