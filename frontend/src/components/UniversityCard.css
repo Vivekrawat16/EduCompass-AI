@@ -1,0 +1,340 @@
+/* University Card Styles */
+.uni-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #E2E8F0;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.uni-card.locked {
+    border: 2px solid #10B981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
+}
+
+/* Category Badge */
+.category-badge {
+    position: absolute;
+    top: -8px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-dream {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: white;
+}
+
+.category-target {
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: white;
+}
+
+.category-safe {
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+}
+
+/* Header */
+.uni-card-header {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.uni-card-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+}
+
+.uni-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #64748B;
+    font-size: 0.85rem;
+}
+
+.uni-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ranking {
+    background: #F1F5F9;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* Evaluation Section */
+.uni-evaluation {
+    background: #F8FAFC;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.eval-section {
+    margin-bottom: 0.8rem;
+}
+
+.eval-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.eval-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+    margin: 0 0 0.4rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.match-reasons h4 {
+    color: #10B981;
+}
+
+.risks h4 {
+    color: #F59E0B;
+}
+
+.eval-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.eval-section li {
+    font-size: 0.85rem;
+    color: #334155;
+    padding: 2px 0;
+    padding-left: 12px;
+    position: relative;
+}
+
+.eval-section li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #94A3B8;
+}
+
+/* Eval Badges */
+.eval-badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid #E2E8F0;
+}
+
+.eval-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.chance-high {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.chance-medium {
+    background: #FEF9C3;
+    color: #854D0E;
+}
+
+.chance-low {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.cost-low {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.cost-medium {
+    background: #FEF9C3;
+    color: #854D0E;
+}
+
+.cost-high {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+/* Actions */
+.uni-card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.action-btn.shortlist {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+.action-btn.shortlist:hover {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+.action-btn.shortlist.active {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+.action-btn.lock {
+    background: linear-gradient(135deg, #6366F1, #4F46E5);
+    color: white;
+}
+
+.action-btn.lock:hover {
+    background: linear-gradient(135deg, #4F46E5, #4338CA);
+}
+
+.action-btn.lock.locked {
+    background: linear-gradient(135deg, #10B981, #059669);
+}
+
+/* Link */
+.uni-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    color: #6366F1;
+    text-decoration: none;
+}
+
+.uni-link:hover {
+    text-decoration: underline;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+}
+
+.lock-modal {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-icon {
+    color: #6366F1;
+    margin-bottom: 1rem;
+}
+
+.modal-icon.warning {
+    color: #F59E0B;
+}
+
+.lock-modal h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 0.5rem 0;
+}
+
+.lock-modal p {
+    color: #64748B;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.modal-btn.cancel {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+.modal-btn.cancel:hover {
+    background: #E2E8F0;
+}
+
+.modal-btn.confirm {
+    background: linear-gradient(135deg, #6366F1, #4F46E5);
+    color: white;
+}
+
+.modal-btn.confirm:hover {
+    background: linear-gradient(135deg, #4F46E5, #4338CA);
+}
+
+.modal-btn.danger {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    color: white;
+}
+
+.modal-btn.danger:hover {
+    background: linear-gradient(135deg, #DC2626, #B91C1C);
+}

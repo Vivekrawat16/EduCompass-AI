@@ -1,0 +1,405 @@
+/* ========================================
+   DASHBOARD / CONTROL CENTER CSS
+   Clean Light Education Theme
+   ======================================== */
+
+.dashboard-container {
+    min-height: 100vh;
+    background: var(--edu-bg-page-start);
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- NAVIGATION --- */
+.dashboard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 3rem;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--edu-border-input);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--edu-primary);
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: var(--edu-text-sub);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+    padding: 0.5rem 0;
+}
+
+.nav-link.active,
+.nav-link:hover {
+    color: var(--edu-text-main);
+}
+
+.nav-link.active {
+    border-bottom: 2px solid var(--edu-primary);
+}
+
+/* --- CONTENT --- */
+.dashboard-content {
+    padding: 2rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--edu-text-main);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+}
+
+.subtitle {
+    color: var(--edu-text-sub);
+    font-size: 1rem;
+}
+
+/* --- STAGE STEPPER --- */
+.stage-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #FFFFFF;
+    padding: 0.75rem 1.25rem;
+    border-radius: 50px;
+    border: 1px solid var(--edu-border-input);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--edu-text-placeholder);
+}
+
+.step-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #F1F5F9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: none;
+    /* Hide mostly */
+}
+
+/* Active State */
+.step-item.active .step-icon {
+    background: #E0E7FF;
+    color: var(--edu-primary);
+}
+
+/* Current State (Highlighted) */
+.step-item.current .step-icon {
+    background: var(--edu-primary);
+    color: #FFF;
+    box-shadow: var(--edu-shadow-glow);
+}
+
+.step-item.current .step-label {
+    display: block;
+    color: var(--edu-text-main);
+}
+
+.step-line {
+    width: 20px;
+    height: 2px;
+    background: #F1F5F9;
+    margin: 0 0.25rem;
+}
+
+.step-item.active .step-line {
+    background: #E0E7FF;
+}
+
+/* --- GRID SYSTEM --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* 2:1 Split usually better, but let's try 3 col */
+    gap: 1.5rem;
+    grid-template-areas:
+        "summary summary strength"
+        "tasks tasks tasks"
+        "actions actions actions";
+}
+
+@media (min-width: 1024px) {
+    .dashboard-grid {
+        grid-template-areas:
+            "summary strength strength"
+            "tasks tasks actions";
+    }
+
+    .tasks-card {
+        grid-area: tasks;
+    }
+
+    .quick-actions {
+        grid-area: actions;
+    }
+
+    .profile-summary {
+        grid-area: summary;
+    }
+
+    .strength-card {
+        grid-area: strength;
+    }
+}
+
+/* --- CARDS --- */
+.dash-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid var(--edu-border-input);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.card-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--edu-text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Profile Summary */
+.summary-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.summary-item label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--edu-text-sub);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.summary-item span {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--edu-text-main);
+}
+
+.edit-link {
+    font-size: 0.85rem;
+    color: var(--edu-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Profile Strength */
+.strength-display {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.strength-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.strength-badge.strong {
+    background: #ECFDF5;
+    color: #059669;
+}
+
+.strength-badge.average {
+    background: #FFFBEB;
+    color: #D97706;
+}
+
+.strength-badge.weak {
+    background: #FEF2F2;
+    color: #DC2626;
+}
+
+.strength-bar-container {
+    height: 8px;
+    background: #F1F5F9;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.strength-bar-fill {
+    height: 100%;
+    background: var(--edu-gradient-btn);
+    transition: width 1s ease-out;
+}
+
+.strength-insight {
+    font-size: 0.9rem;
+    color: var(--edu-text-sub);
+}
+
+/* AI Tasks */
+.ai-badge {
+    background: linear-gradient(135deg, #4F46E5, #9333EA);
+    color: #FFF;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #F8FAFC;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.task-item:hover {
+    background: #FFFFFF;
+    border-color: var(--edu-border-input);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.custom-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #CBD5E1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: transparent;
+    transition: all 0.2s;
+}
+
+.task-item.completed .custom-checkbox {
+    background: #10B981;
+    border-color: #10B981;
+    color: #FFF;
+}
+
+.task-item.completed .task-info {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.task-info h4 {
+    font-size: 0.95rem;
+    margin: 0;
+    font-weight: 600;
+    color: var(--edu-text-main);
+}
+
+.task-cat {
+    font-size: 0.8rem;
+    color: var(--edu-text-sub);
+}
+
+/* Actions */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.action-btn.primary {
+    background: var(--edu-text-main);
+    color: #FFF;
+}
+
+.action-btn.secondary {
+    background: #F1F5F9;
+    color: var(--edu-text-main);
+}
+
+.action-btn:hover {
+    transform: translateX(2px);
+    box-shadow: var(--edu-shadow-card);
+}
+
+.dashboard-loading {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--edu-text-sub);
+}

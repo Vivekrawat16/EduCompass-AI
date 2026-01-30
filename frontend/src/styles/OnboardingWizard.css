@@ -1,0 +1,265 @@
+/* ========================================
+   ONBOARDING WIZARD - CLEAN LIGHT THEME
+   Matches Auth.css Global Theme
+   ======================================== */
+
+.wizard-container {
+    max-width: 800px;
+    margin: 3rem auto;
+    background: var(--edu-bg-card, #FFFFFF);
+    border-radius: 24px;
+    box-shadow: var(--edu-shadow-card, 0 10px 40px rgba(0, 0, 0, 0.08));
+    padding: 3rem;
+    color: var(--edu-text-main, #0F172A);
+    font-family: var(--font-body, 'Inter', sans-serif);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--edu-border-subtle, rgba(0, 0, 0, 0.05));
+}
+
+/* ========================================
+   PROGRESS BAR
+   ======================================== */
+.wizard-progress {
+    margin-bottom: 3rem;
+}
+
+.progress-bar {
+    height: 6px;
+    background: var(--edu-gradient-btn, linear-gradient(135deg, #4F46E5 0%, #6366F1 100%));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+}
+
+.steps-indicator {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--edu-text-sub, #64748B);
+    font-weight: 500;
+}
+
+.steps-indicator span.active {
+    color: var(--edu-primary, #4F46E5);
+    font-weight: 700;
+}
+
+/* ========================================
+   STEP HEADER
+   ======================================== */
+.step-card {
+    min-height: 400px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.icon-bg {
+    width: 64px;
+    height: 64px;
+    background: rgba(79, 70, 229, 0.08);
+    /* Light Indigo bg */
+    color: var(--edu-primary, #4F46E5);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.wizard-container:hover .icon-bg {
+    transform: scale(1.05);
+}
+
+.step-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: var(--edu-text-main, #0F172A);
+    font-weight: 800;
+}
+
+.step-header p {
+    color: var(--edu-text-sub, #64748B);
+    font-size: 1.05rem;
+}
+
+/* ========================================
+   FORMS & INPUTS
+   ======================================== */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+    color: var(--edu-text-main, #0F172A);
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea.styled-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: var(--edu-bg-input, #F5F7FB) !important;
+    border: 1px solid var(--edu-border-input, #E2E8F0);
+    border-radius: 12px;
+    color: var(--edu-text-main, #1E293B) !important;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+/* Select arrow fix */
+.form-group select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea.styled-textarea:focus {
+    background-color: #FFFFFF !important;
+    border-color: var(--edu-border-focus, #4F46E5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.form-group textarea.styled-textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--edu-text-placeholder, #94A3B8);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   RADIO BUTTONS (Goals/Budget)
+   ======================================== */
+.radio-group {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.radio-btn {
+    padding: 0.75rem 1.5rem;
+    background: #FFFFFF;
+    border: 1px solid var(--edu-border-input, #E2E8F0);
+    border-radius: 50px;
+    /* Pill shape */
+    color: var(--edu-text-sub, #64748B);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.radio-btn:hover {
+    background: var(--edu-bg-page-start, #F7F9FF);
+    border-color: var(--edu-primary, #4F46E5);
+    color: var(--edu-primary, #4F46E5);
+}
+
+.radio-btn.selected {
+    background: var(--edu-primary, #4F46E5);
+    border-color: var(--edu-primary, #4F46E5);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* ========================================
+   FOOTER BUTTONS
+   ======================================== */
+.wizard-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--edu-border-subtle, rgba(0, 0, 0, 0.05));
+    align-items: center;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 0.875rem 1.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--edu-gradient-btn, linear-gradient(135deg, #4F46E5 0%, #6366F1 100%));
+    color: #FFFFFF;
+    margin-left: auto;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+}
+
+.btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--edu-text-sub, #64748B);
+    border: 1px solid transparent;
+}
+
+.btn-secondary:hover {
+    color: var(--edu-text-main, #0F172A);
+    background: var(--edu-bg-page-start, #F7F9FF);
+    border-color: var(--edu-border-input, #E2E8F0);
+}
