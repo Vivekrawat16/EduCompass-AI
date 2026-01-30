@@ -36,8 +36,9 @@ app.use('/api/lock', require('./src/routes/lockRoutes'));
 app.use('/api/applications', require('./src/routes/applicationRoutes'));
 
 // 404 Handler (API only)
-app.use('/api/*', (req, res) => {
-    res.status(404).json({ error: 'Not Found' });
+// 404 Handler (API only) - Catch all unmatched API requests
+app.use('/api', (req, res) => {
+    res.status(404).json({ error: 'API route not found' });
 });
 
 // Serve static frontend files (Production)
@@ -46,7 +47,8 @@ const path = require('path');
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // Handle React routing, return all requests to React app
-app.get('*', (req, res) => {
+// Handle React routing, return all requests to React app
+app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
 });
 
