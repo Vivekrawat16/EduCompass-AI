@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const app = express();
 
 // Middleware
+app.set('trust proxy', 1); // Enable trust proxy for Railway/Heroku
 app.use(helmet());
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:5174'],
