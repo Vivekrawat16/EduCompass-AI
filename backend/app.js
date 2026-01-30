@@ -19,9 +19,10 @@ app.use(require('./config/passport').initialize());
 app.use(morgan('dev'));
 
 // Routes
-app.get('/', (req, res) => {
-    res.send('AI Counsellor API is running');
-});
+// Routes
+// app.get('/', (req, res) => {
+//     res.send('AI Counsellor API is running');
+// });
 
 // API Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
