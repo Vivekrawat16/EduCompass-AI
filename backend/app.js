@@ -9,13 +9,28 @@ const app = express();
 
 // Middleware
 app.set('trust proxy', 1); // Enable trust proxy for Railway/Heroku
-app.set('trust proxy', 1); // Enable trust proxy for Railway/Heroku
+
+// CORS Configuration - Allow both local and production origins
+app.use(cors({
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'https://educompass-ai-production.up.railway.app' // Production frontend
+    ],
+    credentials: true
+}));
+
+// Helmet Security with CSP configured for Google Auth and production
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com"],
-            connectSrc: ["'self'", "https://accounts.google.com"],
+            connectSrc: [
+                "'self'",
+                "https://accounts.google.com",
+                "https://educompass-ai-production.up.railway.app" // Allow backend API calls
+            ],
             imgSrc: ["'self'", "data:", "https://*.googleusercontent.com"],
             frameSrc: ["'self'", "https://accounts.google.com"]
         }
@@ -23,10 +38,7 @@ app.use(helmet({
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
-    credentials: true
-}));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(require('./config/passport').initialize());
