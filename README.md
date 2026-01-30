@@ -62,6 +62,31 @@ An intelligent AI-powered counsellor application to help students navigate their
 - **Backend**: `cd backend && npm run dev`
 - **Frontend**: `cd frontend && npm run dev`
 
+## Deployment
+
+### Railway Deployment (Recommended)
+
+This project is configured for easy deployment on [Railway](https://railway.app/).
+
+1.  **Fork/Clone** this repository to your GitHub.
+2.  **Create a New Project** on Railway.
+3.  **Deploy from GitHub Repo**.
+4.  **Add a Database**: Add a PostgreSQL plugin to your Railway project.
+    - Railway automatically sets `DATABASE_URL`.
+5.  **Configure Environment Variables** in Railway service settings:
+    - `JWT_SECRET`: (Your secret key)
+    - `GOOGLE_CLIENT_ID`: (Your Google OAuth Client ID)
+    - `GOOGLE_CLIENT_SECRET`: (Your Google OAuth Secret)
+    - `GOOGLE_CALLBACK_URL`: (Your Production URL + `/api/auth/google/callback`)
+        - Example: `https://your-app-name.up.railway.app/api/auth/google/callback`
+    - `FRONTEND_URL`: (Your Production URL) for CORS.
+        - Example: `https://your-app-name.up.railway.app`
+    - `GEMINI_API_KEY`: (Your Gemini API Key)
+6.  **Build & Start**:
+    - Railway should automatically detect `npm run build` and `npm run start`.
+    - `npm run build` installs backend/frontend deps and builds the React app.
+    - `npm run start` runs the backend, which serves the built frontend.
+
 ## Project Structure
 
 ```
