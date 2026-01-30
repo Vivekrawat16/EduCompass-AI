@@ -111,15 +111,18 @@ exports.googleCallback = async (req, res) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 3600000 // 1 hour
         });
 
-        // Redirect to Frontend
-        res.redirect(`http://localhost:5173/google-success?token=${token}&stage=${stage}`);
+        // Redirect to Frontend (AWS or localhost)
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.redirect(`${frontendUrl}/google-success?token=${token}&stage=${stage}`);
 
     } catch (err) {
-        console.error(err.message);
-        res.redirect('http://localhost:5173/login?error=Google_Login_Failed');
+        console.error('Google Callback Error:', err.message);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.redirect(`${frontendUrl}/login?error=Google_Login_Failed`);
     }
 };
 

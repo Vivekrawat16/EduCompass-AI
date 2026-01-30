@@ -2,12 +2,31 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const pool = require('./db');
 
+// ======================
+// PASSPORT SESSION SERIALIZATION
+// ======================
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        done(null, result.rows[0]);
+    } catch (err) {
+        done(err, null);
+    }
+});
+
+// ======================
+// GOOGLE OAUTH STRATEGY
+// ======================
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: process.env.GOOGLE_CALLBACK_URL || "/api/auth/google/callback",
-        proxy: true
+        proxy: true // Required for AWS Load Balancer / Nginx
     },
         async (accessToken, refreshToken, profile, done) => {
             try {
@@ -61,6 +80,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                 return done(null, newUser.rows[0]);
 
             } catch (err) {
+                console.error('Google OAuth Error:', err);
                 return done(err, null);
             }
         }
