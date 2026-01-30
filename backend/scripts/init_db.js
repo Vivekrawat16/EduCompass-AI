@@ -21,6 +21,15 @@ const initDb = async () => {
             console.log("Google Auth migration applied!");
         }
 
+        // Run Complete Profile migration (Fixes 500 error in Onboarding)
+        const profileMigrationPath = path.join(__dirname, '../../database/migration_complete_profile.sql');
+        if (fs.existsSync(profileMigrationPath)) {
+            console.log('Applying Complete Profile migration...');
+            const profileSql = fs.readFileSync(profileMigrationPath, 'utf8');
+            await pool.query(profileSql);
+            console.log("Complete Profile migration applied!");
+        }
+
     } catch (err) {
         console.error("Database initialization failed:", err);
     } finally {
