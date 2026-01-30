@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import api, { GOOGLE_AUTH_URL } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Globe, ArrowRight, Lock, Check } from 'lucide-react';
+import { Globe, ArrowRight, Lock, Check, Sparkles } from 'lucide-react';
 import '../styles/Auth.css';
 
 const Signup = () => {
