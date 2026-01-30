@@ -30,6 +30,15 @@ const initDb = async () => {
             console.log("Complete Profile migration applied!");
         }
 
+        // Run ID Fix migration (Fixes 500 error in Lock - String IDs)
+        const idFixPath = path.join(__dirname, '../../database/migration_fix_university_ids.sql');
+        if (fs.existsSync(idFixPath)) {
+            console.log('Applying ID Fix migration (VARCHAR IDs)...');
+            const idFixSql = fs.readFileSync(idFixPath, 'utf8');
+            await pool.query(idFixSql);
+            console.log("ID Fix migration applied!");
+        }
+
     } catch (err) {
         console.error("Database initialization failed:", err);
     } finally {

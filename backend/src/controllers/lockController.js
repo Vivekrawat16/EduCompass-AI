@@ -2,8 +2,31 @@ const pool = require('../../config/db');
 
 exports.lockUniversity = async (req, res) => {
     try {
-        const { university_id } = req.body;
+        const { university_id, university_data } = req.body;
         const user_id = req.user.id;
+
+        // 1. Check if University exists in DB (for external Hippo IDs)
+        const uniCheck = await pool.query("SELECT * FROM universities WHERE id = $1", [university_id]);
+
+        if (uniCheck.rows.length === 0) {
+            if (!university_data) {
+                return res.status(400).json({ error: "University not found and no data provided" });
+            }
+
+            // Insert the new university from external API to our DB
+            await pool.query(
+                `INSERT INTO universities (id, name, country, ranking, tuition_fee, details) 
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [
+                    university_id, // Now a string (VARCHAR)
+                    university_data.name,
+                    university_data.country,
+                    university_data.ranking || 999,
+                    university_data.tuition_fee ? `${university_data.tuition_fee}` : 'N/A',
+                    JSON.stringify(university_data) // Store full object in details
+                ]
+            );
+        }
 
         // Check if already locked
         const existingLock = await pool.query(

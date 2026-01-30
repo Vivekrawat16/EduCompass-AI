@@ -97,12 +97,12 @@ const UniversityDiscovery = () => {
     };
 
     // Handle Lock (Final Application)
-    const handleLock = async (uniId) => {
+    const handleLock = async (uni) => {
         try {
             const response = await fetch('http://localhost:5000/api/lock', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ university_id: uniId }),
+                body: JSON.stringify({ university_id: uni.id, university_data: uni }),
                 credentials: 'include'
             });
             if (response.ok) {
@@ -295,7 +295,7 @@ const UniversityDiscovery = () => {
                                             </div>
                                         </div>
                                         <div className="uni-footer">
-                                            <button className="lock-btn" onClick={() => handleLock(uni.id)}>
+                                            <button className="lock-btn" onClick={() => handleLock(uni)}>
                                                 <Lock size={14} /> Lock & Apply
                                             </button>
                                         </div>
