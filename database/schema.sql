@@ -73,6 +73,9 @@ CREATE TABLE locked_universities (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     university_id INTEGER REFERENCES universities(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'Draft',
+    deadline TIMESTAMP WITH TIME ZONE,
+    notes TEXT,
     locked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
