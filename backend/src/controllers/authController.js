@@ -4,7 +4,7 @@ const jwtGenerator = require('../utils/jwtGenerator');
 
 exports.register = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, full_name } = req.body;
 
         // 1. Check if user exists
         const user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -23,8 +23,8 @@ exports.register = async (req, res) => {
             [email, bcryptPassword]
         );
 
-        // 4. Create Profile entry (mandatory for onboarding)
-        await pool.query("INSERT INTO profiles (user_id) VALUES ($1)", [newUser.rows[0].id]);
+        // 4. Create Profile entry (mandatory for onboarding) - NOW WITH NAME
+        await pool.query("INSERT INTO profiles (user_id, full_name) VALUES ($1, $2)", [newUser.rows[0].id, full_name || 'Student']);
 
         // 5. Initialize Stage (Auth completed -> move to Onboarding)
         await pool.query(

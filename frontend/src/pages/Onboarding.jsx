@@ -19,12 +19,32 @@ const Onboarding = () => {
         sat: ''
     });
 
+    const [error, setError] = useState('');
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (error) setError(''); // Clear error on typing
+    };
+
+    const validateForm = () => {
+        if (!formData.full_name.trim()) return "Full Name is required";
+        if (!formData.target_major.trim()) return "Target Major is required";
+        if (!formData.target_country.trim()) return "Target Country is required";
+        if (!formData.gpa.trim()) return "GPA is required";
+        if (!formData.budget.trim()) return "Annual Budget is required";
+        if (isNaN(formData.gpa) || parseFloat(formData.gpa) < 0 || parseFloat(formData.gpa) > 4.0) return "Please enter a valid GPA (0.0 - 4.0)";
+        return null;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
         setIsLoading(true);
         try {
             const payload = {
@@ -35,13 +55,17 @@ const Onboarding = () => {
             const response = await api.put('/profile', payload);
             const data = response.data;
 
-            // Update local auth state with new stage (3 for completed onboarding?)
-            login(token, data.stage);
+            // Update local auth state with new stage
+            if (data.stage) {
+                login(token, data.stage);
+            }
+
+            // Navigate to dashboard
             navigate('/dashboard');
 
         } catch (err) {
             console.error(err);
-            alert('Failed to update profile');
+            setError('Failed to update profile. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -67,6 +91,8 @@ const Onboarding = () => {
                     <div className="step-indicator"></div>
                 </div>
 
+                {error && <div className="error-msg" style={{ marginBottom: '1.5rem' }}>{error}</div>}
+
                 <form onSubmit={handleSubmit}>
                     <div className="onboarding-form-grid">
                         <div className="section-title">
@@ -75,7 +101,7 @@ const Onboarding = () => {
                         </div>
 
                         <div className="form-group full-width">
-                            <label className="input-label">Full Name</label>
+                            <label className="input-label">Full Name <span className="text-red-500">*</span></label>
                             <input
                                 className="auth-input"
                                 name="full_name"
@@ -92,7 +118,7 @@ const Onboarding = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="input-label">Target Major</label>
+                            <label className="input-label">Target Major <span className="text-red-500">*</span></label>
                             <input
                                 className="auth-input"
                                 name="target_major"
@@ -104,7 +130,7 @@ const Onboarding = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="input-label">Target Country</label>
+                            <label className="input-label">Target Country <span className="text-red-500">*</span></label>
                             <input
                                 className="auth-input"
                                 name="target_country"
@@ -116,7 +142,7 @@ const Onboarding = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="input-label">Current GPA</label>
+                            <label className="input-label">Current GPA <span className="text-red-500">*</span></label>
                             <input
                                 className="auth-input"
                                 name="gpa"
@@ -128,7 +154,7 @@ const Onboarding = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="input-label">Annual Budget</label>
+                            <label className="input-label">Annual Budget <span className="text-red-500">*</span></label>
                             <div style={{ position: 'relative' }}>
                                 <DollarSign size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                                 <input

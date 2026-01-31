@@ -59,6 +59,17 @@ const Signup = () => {
 
                 <form onSubmit={handleSignup} className="auth-form">
                     <div className="form-group">
+                        <label>Full Name</label>
+                        <input
+                            className="auth-input"
+                            type="text"
+                            placeholder="John Doe"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
                         <label>Email Address</label>
                         <input
                             className="auth-input"

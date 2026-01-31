@@ -66,18 +66,23 @@ const RouteLogic = () => {
   );
 }
 
-// Wrapper to conditionally show AI panel
+import Header from './components/Header';
+
+// ...
+
+// Wrapper to conditionally show AI panel and Header
 const AppContent = () => {
   const location = useLocation();
 
-  // Hide AI panel on these routes
-  const hideAIRoutes = ['/', '/login', '/signup', '/onboarding', '/google-success'];
-  const showAI = !hideAIRoutes.includes(location.pathname);
+  // Hide Layout (Header + AI) on these routes
+  const hideLayoutRoutes = ['/', '/login', '/signup', '/onboarding', '/google-success'];
+  const showLayout = !hideLayoutRoutes.includes(location.pathname);
 
   return (
     <>
+      {showLayout && <Header />}
       <RouteLogic />
-      {showAI && <AICounsellor />}
+      {showLayout && <AICounsellor />}
     </>
   );
 }

@@ -158,11 +158,26 @@ exports.updateProfile = async (req, res) => {
         const updatedProfile = await pool.query(updateQuery, values);
 
         // Ensure profile is marked complete if critical fields are present
+        let newStage = null;
+        let currentStage = null;
+
         if (updatedProfile.rows[0].target_country && updatedProfile.rows[0].budget) {
             await pool.query("UPDATE profiles SET is_profile_complete = true WHERE user_id = $1", [req.user.id]);
+
+            // Advance user stage to 3 (Discovery) if still in onboarding (stage 2)
+            const progress = await pool.query("SELECT current_stage_id FROM user_progress WHERE user_id = $1", [req.user.id]);
+            currentStage = progress.rows[0]?.current_stage_id;
+
+            if (currentStage === 2) {
+                await pool.query("UPDATE user_progress SET current_stage_id = 3 WHERE user_id = $1", [req.user.id]);
+                newStage = 3;
+            }
         }
 
-        res.json({ profile: updatedProfile.rows[0] });
+        res.json({
+            profile: updatedProfile.rows[0],
+            stage: newStage || currentStage
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server Error");

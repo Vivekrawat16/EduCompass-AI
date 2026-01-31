@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import {
@@ -75,27 +76,23 @@ const Dashboard = () => {
         </div>
     );
 
+    // Handle error state when data is null
+    if (!data) {
+        return (
+            <div className="dashboard-loading">
+                <AlertCircle size={32} color="var(--edu-danger)" />
+                <p>Failed to load dashboard. Please try refreshing the page.</p>
+            </div>
+        );
+    }
+
     const { profile, strength, stage, tasks } = data;
     const stageEnum = userStatus?.stage || STAGE_ID_MAP[stage] || 'ONBOARDING';
     const isOnboarding = stageEnum === 'ONBOARDING';
     const profileCompletion = userStatus?.profileCompletion || 0;
 
     return (
-        <div className="dashboard-container">
-            {/* Top Navigation */}
-            <nav className="dashboard-nav">
-                <div className="nav-brand">
-                    <Globe size={20} />
-                    <span>EduCompass AI</span>
-                </div>
-                <div className="nav-links">
-                    <Link to="/dashboard" className="nav-link active">Dashboard</Link>
-                    <Link to="/discovery" className="nav-link">Universities</Link>
-                    <Link to="/tracker" className="nav-link">Applications</Link>
-                </div>
-                <ProfileMenu />
-            </nav>
-
+        <div className="page-wrapper">
             <main className="dashboard-content">
 
                 {/* Enhanced Stage Progress Tracker */}

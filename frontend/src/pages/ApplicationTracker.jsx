@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Header from '../components/Header';
 import { DndContext, useDraggable, useDroppable, DragOverlay } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
-import { Calendar, FileText, MoreHorizontal, Plus, Globe, LayoutDashboard, Search, Kanban } from 'lucide-react';
+import { Calendar, FileText, MoreHorizontal, Plus, Globe, LayoutDashboard, Search, Kanban, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProfileMenu from '../components/ProfileMenu';
 import ApplicationGuidance from '../components/ApplicationGuidance';
@@ -16,7 +17,7 @@ const COLUMNS = [
 ];
 
 // Draggable Card Component
-const DraggableCard = ({ app }) => {
+const DraggableCard = ({ app, onDelete }) => {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: app.application_id.toString(),
     });
@@ -26,12 +27,26 @@ const DraggableCard = ({ app }) => {
     } : undefined;
 
     return (
-        <div ref={setNodeRef} style={style} {...listeners} {...attributes} className="kanban-card">
+        <div ref={setNodeRef} style={style} {...listeners} {...attributes} className="kanban-card group">
             <div className="card-top">
                 <span className="uni-name">{app.university_name}</span>
-                <span className={`rank-badge`}>#{app.ranking}</span>
+                <button
+                    className="delete-btn"
+                    onClick={(e) => {
+                        e.stopPropagation(); // Prevent drag start
+                        if (window.confirm('Are you sure you want to remove this application?')) {
+                            onDelete(app.application_id);
+                        }
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()} // Prevent drag logic interfering with click
+                >
+                    <Trash2 size={14} />
+                </button>
             </div>
             <div className="card-meta">
+                <div className="meta-row">
+                    <span className={`rank-badge`}>#{app.ranking}</span>
+                </div>
                 <div className="meta-row">
                     <Calendar size={14} />
                     <span>{app.deadline ? new Date(app.deadline).toLocaleDateString() : 'No Deadline'}</span>
@@ -46,7 +61,7 @@ const DraggableCard = ({ app }) => {
 };
 
 // Droppable Column Component
-const KanBanColumn = ({ id, title, apps }) => {
+const KanBanColumn = ({ id, title, apps, onDelete }) => {
     const { setNodeRef } = useDroppable({
         id: id,
     });
@@ -59,7 +74,7 @@ const KanBanColumn = ({ id, title, apps }) => {
             </div>
             <div ref={setNodeRef} className="column-body">
                 {apps.map(app => (
-                    <DraggableCard key={app.application_id} app={app} />
+                    <DraggableCard key={app.application_id} app={app} onDelete={onDelete} />
                 ))}
                 {apps.length === 0 && <div className="empty-slot">Drop here</div>}
             </div>
@@ -100,6 +115,23 @@ const ApplicationTracker = () => {
         fetchLocked();
     }, []);
 
+    const handleDelete = async (appId) => {
+        // Optimistic Update
+        const previousApps = [...applications];
+        setApplications(prev => prev.filter(app => app.application_id !== appId));
+
+        try {
+            await api.delete(`/applications/${appId}`);
+            // Also refresh locked list if needed, as it might affect the locked tabs
+            if (activeId === appId) setActiveId(null);
+            fetchLocked();
+        } catch (err) {
+            console.error("Failed to delete application", err);
+            setApplications(previousApps); // Revert on failure
+            alert("Failed to delete application.");
+        }
+    };
+
     const handleDragEnd = async (event) => {
         const { active, over } = event;
 
@@ -129,29 +161,6 @@ const ApplicationTracker = () => {
 
     return (
         <div className="page-wrapper">
-            {/* Navigation Header */}
-            <nav className="dashboard-nav">
-                <div className="nav-brand">
-                    <Globe size={24} className="brand-icon" />
-                    <span>EduCompass AI</span>
-                </div>
-                <div className="nav-links">
-                    <Link to="/dashboard" className="nav-link">
-                        <LayoutDashboard size={18} />
-                        <span>Dashboard</span>
-                    </Link>
-                    <Link to="/discovery" className="nav-link">
-                        <Search size={18} />
-                        <span>Discovery</span>
-                    </Link>
-                    <Link to="/tracker" className="nav-link active">
-                        <Kanban size={18} />
-                        <span>Tracker</span>
-                    </Link>
-                </div>
-                <ProfileMenu />
-            </nav>
-
             <div className="tracker-container">
                 <header className="tracker-header">
                     <h1>Application Tracker</h1>
@@ -166,6 +175,7 @@ const ApplicationTracker = () => {
                                 id={col.id}
                                 title={col.title}
                                 apps={applications.filter(a => a.status === col.id || (col.id === 'Draft' && !a.status))}
+                                onDelete={handleDelete}
                             />
                         ))}
                     </div>
@@ -198,7 +208,7 @@ const ApplicationTracker = () => {
                     )}
                 </section>
             </div>
-        </div>
+        </div >
     );
 };
 

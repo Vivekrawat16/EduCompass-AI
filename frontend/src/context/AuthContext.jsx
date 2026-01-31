@@ -6,7 +6,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [userStage, setUserStage] = useState(1);
+    const [stage, setStage] = useState(1);
 
     // Check strict auth status
     const checkAuth = async () => {
@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
             const response = await api.get('/auth/me');
             if (response.data.isAuthenticated) {
                 setIsAuthenticated(true);
-                setUserStage(response.data.user.current_stage_id || 1);
+                setStage(response.data.stage || 1);
             } else {
                 setIsAuthenticated(false);
             }
@@ -29,9 +29,9 @@ export const AuthProvider = ({ children }) => {
         checkAuth();
     }, []);
 
-    const login = (token, stage) => {
+    const login = (token, newStage) => {
         setIsAuthenticated(true);
-        setUserStage(stage);
+        setStage(newStage);
         // We don't need to store token in localStorage as we use HTTP-only cookies
     };
 
@@ -39,20 +39,20 @@ export const AuthProvider = ({ children }) => {
         try {
             await api.post('/auth/logout');
             setIsAuthenticated(false);
-            setUserStage(1);
+            setStage(1);
         } catch (err) {
             console.error("Logout failed", err);
         }
     };
 
     const advanceStage = (newStage) => {
-        if (newStage > userStage) {
-            setUserStage(newStage);
+        if (newStage > stage) {
+            setStage(newStage);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, loading, login, logout, userStage, advanceStage }}>
+        <AuthContext.Provider value={{ isAuthenticated, loading, login, logout, stage, advanceStage }}>
             {children}
         </AuthContext.Provider>
     );

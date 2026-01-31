@@ -15,6 +15,7 @@ const UniversityDiscovery = () => {
     const [universities, setUniversities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [shortlist, setShortlist] = useState([]);
+    const [lockedIds, setLockedIds] = useState([]);
 
     // Filters State
     const [search, setSearch] = useState('');
@@ -65,8 +66,21 @@ const UniversityDiscovery = () => {
         }
     };
 
+    // Fetch Locked/Applied Universities
+    const fetchLockedApps = async () => {
+        try {
+            const response = await api.get('/applications');
+            // Extract university IDs from the response
+            const ids = response.data.map(app => String(app.university_id));
+            setLockedIds(ids);
+        } catch (err) {
+            console.error("Failed to fetch locked apps", err);
+        }
+    };
+
     useEffect(() => {
         fetchShortlist();
+        fetchLockedApps();
         fetchUniversities();
     }, []);
 
@@ -93,11 +107,18 @@ const UniversityDiscovery = () => {
 
     // Handle Lock (Final Application)
     const handleLock = async (uni) => {
+        if (lockedIds.includes(String(uni.id))) {
+            return; // Prevent duplicate lock
+        }
+
         try {
             const response = await api.post('/lock', {
                 university_id: uni.id,
                 university_data: uni
             });
+
+            // Update local state to reflect lock immediately
+            setLockedIds(prev => [...prev, String(uni.id)]);
 
             navigate('/dashboard');
             alert("University Locked! Application Started.");
@@ -109,29 +130,6 @@ const UniversityDiscovery = () => {
 
     return (
         <div className="page-wrapper">
-            {/* Navigation Header */}
-            <nav className="dashboard-nav">
-                <div className="nav-brand">
-                    <Globe size={24} className="brand-icon" />
-                    <span>EduCompass AI</span>
-                </div>
-                <div className="nav-links">
-                    <Link to="/dashboard" className="nav-link">
-                        <LayoutDashboard size={18} />
-                        <span>Dashboard</span>
-                    </Link>
-                    <Link to="/discovery" className="nav-link active">
-                        <Search size={18} />
-                        <span>Discovery</span>
-                    </Link>
-                    <Link to="/tracker" className="nav-link">
-                        <Kanban size={18} />
-                        <span>Tracker</span>
-                    </Link>
-                </div>
-                <ProfileMenu />
-            </nav>
-
             <div className="discovery-container">
                 {/* Sidebar Filters */}
                 <aside className="filters-sidebar">
@@ -286,8 +284,20 @@ const UniversityDiscovery = () => {
                                             </div>
                                         </div>
                                         <div className="uni-footer">
-                                            <button className="lock-btn" onClick={() => handleLock(uni)}>
-                                                <Lock size={14} /> Lock & Apply
+                                            <button
+                                                className={`lock-btn ${lockedIds.includes(String(uni.id)) ? 'locked' : ''}`}
+                                                onClick={() => handleLock(uni)}
+                                                disabled={lockedIds.includes(String(uni.id))}
+                                            >
+                                                {lockedIds.includes(String(uni.id)) ? (
+                                                    <>
+                                                        <CheckCircle size={14} /> Applied
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Lock size={14} /> Lock & Apply
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     </motion.div>
@@ -304,7 +314,7 @@ const UniversityDiscovery = () => {
                     )}
                 </main>
             </div>
-        </div>
+        </div >
     );
 };
 
