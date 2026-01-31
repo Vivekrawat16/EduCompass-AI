@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const session = require('express-session');
 const cookieParser = require('cookie-parser');
 
 const app = express();
@@ -44,35 +43,20 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
             connectSrc: [
                 "'self'",
-                "https://accounts.google.com",
                 process.env.BACKEND_URL || "'self'"
             ],
-            imgSrc: ["'self'", "data:", "https://*.googleusercontent.com"],
-            frameSrc: ["'self'", "https://accounts.google.com"]
+            imgSrc: ["'self'", "data:"],
+            frameSrc: ["'self'"]
         }
     },
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// ======================
-// SESSION CONFIGURATION (AWS Production)
-// ======================
-app.use(session({
-    name: 'educompass.sid',
-    secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production', // true in production (HTTPS)
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-}));
+
 
 // ======================
 // BODY PARSER & COOKIES
@@ -80,12 +64,6 @@ app.use(session({
 app.use(express.json());
 app.use(cookieParser());
 
-// ======================
-// PASSPORT INITIALIZATION
-// ======================
-const passport = require('./config/passport');
-app.use(passport.initialize());
-app.use(passport.session());
 
 // ======================
 // LOGGING

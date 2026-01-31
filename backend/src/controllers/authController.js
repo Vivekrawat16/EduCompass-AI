@@ -96,35 +96,6 @@ exports.logout = async (req, res) => {
     }
 };
 
-exports.googleCallback = async (req, res) => {
-    try {
-        const user = req.user; // User attached by passport
-
-        // Get User Stage
-        const stageRes = await pool.query("SELECT current_stage_id FROM user_progress WHERE user_id = $1", [user.id]);
-        const stage = stageRes.rows[0]?.current_stage_id || 1;
-
-        // Generate Token
-        const token = jwtGenerator(user.id);
-
-        // Send Cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            maxAge: 3600000 // 1 hour
-        });
-
-        // Redirect to Frontend (AWS or localhost)
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        res.redirect(`${frontendUrl}/google-success?token=${token}&stage=${stage}`);
-
-    } catch (err) {
-        console.error('Google Callback Error:', err.message);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        res.redirect(`${frontendUrl}/login?error=Google_Login_Failed`);
-    }
-};
 
 exports.getMe = async (req, res) => {
     try {
