@@ -1,5 +1,7 @@
 const aiCounsellorService = require('../services/aiCounsellor.service');
-const pool = require('../../config/db');
+const Profile = require('../models/Profile');
+const Shortlist = require('../models/Shortlist');
+const University = require('../models/University');
 
 exports.chat = async (req, res) => {
     try {
@@ -7,15 +9,16 @@ exports.chat = async (req, res) => {
         const { message } = req.body;
 
         // 1. Fetch User Profile
-        const profileRes = await pool.query("SELECT * FROM profiles WHERE user_id = $1", [userId]);
-        const userProfile = profileRes.rows[0];
+        const userProfile = await Profile.findOne({ user: userId });
 
         // 2. Fetch Shortlist
-        const shortlistRes = await pool.query(
-            "SELECT u.name, s.category FROM shortlists s JOIN universities u ON s.university_id = u.id WHERE s.user_id = $1",
-            [userId]
-        );
-        const shortlist = shortlistRes.rows;
+        const shortlists = await Shortlist.find({ user: userId });
+        // Map to format expected by AI service (name, category)
+        // Shortlist model has universityName stored.
+        const shortlist = shortlists.map(s => ({
+            name: s.universityName,
+            category: s.category
+        }));
 
         // 3. Build Context
         const context = {
@@ -64,18 +67,26 @@ exports.chat = async (req, res) => {
 async function executeBackendAction(userId, action) {
     if (action.type === 'ADD_SHORTLIST') {
         const { uni_name, category } = action.data;
-        // 1. Find University ID
-        const uniRes = await pool.query("SELECT id FROM universities WHERE name ILIKE $1 LIMIT 1", [`%${uni_name}%`]);
-        if (uniRes.rows.length === 0) {
+        // 1. Find University ID (Case insensitive)
+        let uni = await University.findOne({ name: { $regex: new RegExp(uni_name, 'i') } });
+
+        if (!uni) {
             console.warn(`[Action] University not found: ${uni_name}`);
+            // Optional: Create it? For now, just log.
             return;
         }
-        const uniId = uniRes.rows[0].id;
 
         // 2. Insert into Shortlist
-        await pool.query(
-            "INSERT INTO shortlists (user_id, university_id, category) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-            [userId, uniId, category || 'Target']
+        await Shortlist.findOneAndUpdate(
+            { user: userId, universityId: uni.sourceId || uni._id },
+            {
+                universityName: uni.name,
+                country: uni.country,
+                category: category || 'Target'
+            },
+            { upsert: true, new: true }
         );
     }
 }
+
+

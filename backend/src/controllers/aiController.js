@@ -1,4 +1,6 @@
-const pool = require('../../config/db');
+const University = require('../models/University');
+const Shortlist = require('../models/Shortlist');
+const Task = require('../models/Task');
 const aiEngine = require('../ai/aiCounsellorEngine');
 const { GeminiServiceError } = require('../services/geminiService');
 
@@ -17,34 +19,42 @@ exports.chat = async (req, res) => {
                 try {
                     if (action.type === 'shortlist') {
                         // Find University ID by Name
-                        // This logic assumes name matching. In prod, we'd want IDs from the start.
-                        // But since Gemini suggests names, we match or insert.
-                        let uniId;
-                        const dbUni = await pool.query("SELECT id FROM universities WHERE name = $1", [action.universityName]);
+                        let uni = await University.findOne({ name: action.universityName }); // Exact match for now
 
-                        if (dbUni.rows.length > 0) {
-                            uniId = dbUni.rows[0].id;
-                        } else {
-                            // Insert placeholder if not found (or fetch details if we could)
-                            const insert = await pool.query(
-                                "INSERT INTO universities (name, country) VALUES ($1, $2) RETURNING id",
-                                [action.universityName, action.country || 'Unknown']
-                            );
-                            uniId = insert.rows[0].id;
+                        if (!uni) {
+                            // Try case-insensitive?
+                            uni = await University.findOne({ name: { $regex: new RegExp(`^${action.universityName}$`, 'i') } });
                         }
 
-                        await pool.query(
-                            "INSERT INTO shortlists (user_id, university_id, category) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-                            [userId, uniId, action.category || 'Target']
+                        if (!uni) {
+                            // Insert placeholder if not found
+                            uni = await University.create({
+                                name: action.universityName,
+                                country: action.country || 'Unknown'
+                            });
+                        }
+
+                        // Create Shortlist (Upsert to prevent duplicates)
+                        await Shortlist.findOneAndUpdate(
+                            { user: userId, universityId: uni._id }, // or uni.id if using virtuals
+                            {
+                                universityName: uni.name,
+                                category: action.category || 'Target',
+                                country: uni.country
+                            },
+                            { upsert: true, new: true }
                         );
+
                         results.push(`Shortlisted ${action.universityName}`);
                     }
 
                     if (action.type === 'add_task') {
-                        await pool.query(
-                            "INSERT INTO tasks (user_id, title, status, description) VALUES ($1, $2, 'pending', $3)",
-                            [userId, action.task, 'AI Generated Task']
-                        );
+                        await Task.create({
+                            user: userId,
+                            title: action.task,
+                            status: 'pending',
+                            description: 'AI Generated Task'
+                        });
                         results.push(`Added task: ${action.task}`);
                     }
                 } catch (actionErr) {

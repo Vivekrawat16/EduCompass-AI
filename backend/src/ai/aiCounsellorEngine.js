@@ -1,4 +1,10 @@
-const pool = require('../../config/db');
+const Profile = require('../models/Profile');
+const Task = require('../models/Task');
+const Shortlist = require('../models/Shortlist');
+
+// ... (keep systemInstruction and other helpers)
+
+
 const geminiService = require('../services/geminiService');
 const hippoService = require('../services/hippo.service');
 
@@ -68,17 +74,28 @@ const processUserRequest = async (userId, userMessage) => {
     console.log(`[AI Engine] Processing for User: ${userId}`);
 
     // 1. DATA AGGREGATION
-    const [profileRes, progressRes, tasksRes, shortlistsRes] = await Promise.all([
-        pool.query("SELECT * FROM profiles WHERE user_id = $1", [userId]),
-        pool.query("SELECT * FROM user_progress WHERE user_id = $1", [userId]),
-        pool.query("SELECT * FROM tasks WHERE user_id = $1 AND status != 'completed'", [userId]),
-        pool.query("SELECT * FROM shortlists WHERE user_id = $1", [userId]) // We might want full objects here
-    ]);
+    // 1. DATA AGGREGATION
+    const profile = await Profile.findOne({ user: userId });
 
-    const profile = profileRes.rows[0] || {};
-    const stage = progressRes.rows[0]?.current_stage_id || 'Exploration';
-    const tasks = tasksRes.rows;
-    const shortlists = shortlistsRes.rows;
+    // Stage is now inside Profile (schema migration: current_stage)
+    const stage = profile ? profile.current_stage : 1;
+
+    // Tasks
+    const tasks = await Task.find({ user: userId, status: { $ne: 'completed' } });
+
+    // Shortlists
+    const shortlists = await Shortlist.find({ user: userId });
+
+    // No need to unwrap .rows anymore, Mongoose returns objects/arrays directly.
+
+    // Map stage ID to string if needed by AI, or keep as number. 
+    // AI expects "Exploration" etc? 
+    // Original code: progressRes.rows[0]?.current_stage_id || 'Exploration';
+    // If it was a number before, keep number. If string, map it.
+    // Our Profile model defaults current_stage to 1.
+    // Let's rely on number for now or map it if the prompting uses specific terms.
+    // The prompt context uses it: "Current Stage: ${context.stage}"
+    // Let's keep it simple.
 
     // 2. FETCH UNIVERSITIES (If needed for recommendation context)
     // If the user's message implies looking for universities, or if we just want to provide context.

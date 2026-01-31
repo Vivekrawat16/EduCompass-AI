@@ -1,4 +1,4 @@
-const pool = require('../../config/db');
+const Profile = require('../models/Profile');
 
 // Stage ID to Enum mapping
 const STAGE_MAP = {
@@ -47,28 +47,24 @@ const calculateProfileCompletion = (profile) => {
 
 exports.getUserStatus = async (req, res) => {
     try {
-        // Fetch profile and stage data
-        const result = await pool.query(
-            `SELECT p.*, up.current_stage_id 
-             FROM profiles p 
-             JOIN user_progress up ON p.user_id = up.user_id 
-             WHERE p.user_id = $1`,
-            [req.user.id]
-        );
+        const profile = await Profile.findOne({ user: req.user.id });
 
-        if (result.rows.length === 0) {
+        if (!profile) {
             return res.status(404).json({ error: "User data not found" });
         }
 
-        const profile = result.rows[0];
-        const stageId = profile.current_stage_id || 1;
+        const stageId = profile.current_stage || 1;
         const stageEnum = STAGE_MAP[stageId] || 'ONBOARDING';
         const profileCompletion = calculateProfileCompletion(profile);
+
+        let profileStatus = 'INCOMPLETE';
+        if (profile.is_profile_complete) profileStatus = 'COMPLETE';
+        else if (profileCompletion >= 50) profileStatus = 'PARTIAL';
 
         res.json({
             isProfileComplete: profile.is_profile_complete,
             profileCompletion: profileCompletion,
-            profileStatus: profile.is_profile_complete ? 'COMPLETE' : (profileCompletion >= 50 ? 'PARTIAL' : 'INCOMPLETE'),
+            profileStatus: profileStatus,
             stageId: stageId,
             stage: stageEnum,
             stageLabel: STAGE_LABELS[stageEnum],
@@ -79,6 +75,8 @@ exports.getUserStatus = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
+
 
 // Export mappings for use by other controllers
 exports.STAGE_MAP = STAGE_MAP;

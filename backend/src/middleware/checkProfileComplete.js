@@ -1,14 +1,14 @@
-const pool = require('../../config/db');
+const Profile = require('../models/Profile');
 
 module.exports = async (req, res, next) => {
     try {
-        const user = await pool.query("SELECT is_profile_complete FROM profiles WHERE user_id = $1", [req.user.id]);
+        const profile = await Profile.findOne({ user: req.user.id });
 
-        if (user.rows.length === 0) {
+        if (!profile) {
             return res.status(403).json({ error: "Profile not found" });
         }
 
-        if (!user.rows[0].is_profile_complete) {
+        if (!profile.is_profile_complete) {
             return res.status(403).json({ error: "Onboarding not completed", redirect: "/onboarding" });
         }
 

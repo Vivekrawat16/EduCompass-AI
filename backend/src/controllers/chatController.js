@@ -1,4 +1,4 @@
-const pool = require('../../config/db');
+const Profile = require('../models/Profile');
 
 exports.chat = async (req, res) => {
     try {
@@ -6,8 +6,12 @@ exports.chat = async (req, res) => {
         const userId = req.user.id;
 
         // 1. Get User Profile Context
-        const profileRes = await pool.query("SELECT * FROM profiles WHERE user_id = $1", [userId]);
-        const profile = profileRes.rows[0];
+        const profile = await Profile.findOne({ user: userId });
+
+        if (!profile) {
+            // Handle case where profile doesn't exist (shouldn't happen for logged in user but safe guard)
+            return res.json({ response: "I can't find your profile info. Please complete onboarding.", advanceStage: false });
+        }
 
         // 2. Construct Mock AI Response based on detailed profile
         // In production, this context would be sent to OpenAI system prompt.
@@ -23,29 +27,31 @@ exports.chat = async (req, res) => {
             gpa: profile.gpa || "N/A"
         };
 
+        const firstName = profile.full_name ? profile.full_name.split(' ')[0] : 'Student';
+        const degree = profile.target_degree || 'degree'; // preferences is nested, but we have flat fields too
+
         // Logic Router (Mocking AI intent recognition)
         if (lowerMsg.includes('hello') || lowerMsg.includes('hi')) {
-            aiResponse = `Hello ${profile.full_name.split(' ')[0]}! I see you're targeting a ${profile.target_degree} in ${userContext.major}. How can I help you plan for ${userContext.country}?`;
+            aiResponse = `Hello ${firstName}! I see you're targeting a ${degree} in ${userContext.major}. How can I help you plan for ${userContext.country}?`;
 
         } else if (lowerMsg.includes('budget') || lowerMsg.includes('cost')) {
-            if (userContext.budget === '< $20k') {
-                aiResponse = `With a budget under $20k, we should focus on countries with low tuition like Germany (public universities) or scholarships in the US/Italy.`;
-            } else if (userContext.budget === '> $60k') {
-                aiResponse = `Your budget of over $60k gives you great flexibility! We can apply to top-tier private universities in the USA, UK, and Australia without funding constraints.`;
-            } else {
-                aiResponse = `A budget of ${userContext.budget} is workable for many state universities in the US, Canada, and most of Europe.`;
-            }
+            // Simple logic
+            aiResponse = `A budget of ${userContext.budget} is workable for many universities. We can find options that match.`;
 
         } else if (lowerMsg.includes('score') || lowerMsg.includes('gpa') || lowerMsg.includes('grade')) {
-            if (parseFloat(userContext.gpa) >= 3.5 || userContext.gpa === '3.8') { // approximate check
+            if (parseFloat(userContext.gpa) >= 3.5 || userContext.gpa === '3.8') {
                 aiResponse = `Your academic profile is strong (${userContext.gpa}). You should aim for top 50 ranked universities.`;
             } else {
-                aiResponse = `Your GPA (${userContext.gpa}) is decent. We can boost your profile by focusing on a strong SOP and high GRE scores to get into good programs.`;
+                aiResponse = `Your GPA (${userContext.gpa}) is decent. We can boost your profile by focusing on a strong SOP.`;
             }
 
         } else if (lowerMsg.includes('ielts') || lowerMsg.includes('gre')) {
-            const ielts = profile.ielts_score || 'Not Taken';
-            const gre = profile.gre_score || 'Not Taken';
+            // profile.test_scores is a Map.
+            const scores = profile.test_scores || {};
+            const getScore = (k) => scores.get ? scores.get(k) : scores[k];
+            const ielts = getScore('ielts') || 'Not Taken';
+            const gre = getScore('gre') || 'Not Taken';
+
             aiResponse = `Currently, your IELTS status is "${ielts}" and GRE is "${gre}". Improving these scores is the fastest way to increase your admission chances.`;
 
         } else if (lowerMsg.includes('suggest') || lowerMsg.includes('university') || lowerMsg.includes('shortlist')) {
@@ -62,8 +68,11 @@ exports.chat = async (req, res) => {
             aiResponse = "Exciting! I've unlocked the University Discovery module. You can now browse universities matched to your profile.";
             nextStage = true;
 
-            // Advance to Stage 5 (Discovery) if not already there
-            await pool.query("UPDATE user_progress SET current_stage_id = 5 WHERE user_id = $1 AND current_stage_id < 5", [userId]);
+            // Advance to Stage 3 (Discovery) if not already there
+            if (profile.current_stage < 3) {
+                profile.current_stage = 3;
+                await profile.save();
+            }
         }
 
         res.json({ response: aiResponse, advanceStage: nextStage });

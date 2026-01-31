@@ -1,4 +1,5 @@
-const pool = require('../../config/db');
+const User = require('../models/User');
+const Profile = require('../models/Profile');
 const bcrypt = require('bcryptjs');
 const jwtGenerator = require('../utils/jwtGenerator');
 
@@ -7,8 +8,8 @@ exports.register = async (req, res) => {
         const { email, password, full_name } = req.body;
 
         // 1. Check if user exists
-        const user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-        if (user.rows.length > 0) {
+        let user = await User.findOne({ email });
+        if (user) {
             return res.status(401).json({ error: "User already exists" });
         }
 
@@ -17,31 +18,31 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(saltRound);
         const bcryptPassword = await bcrypt.hash(password, salt);
 
-        // 3. Insert user inside database
-        const newUser = await pool.query(
-            "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING *",
-            [email, bcryptPassword]
-        );
+        // 3. Create User
+        user = new User({
+            email,
+            password: bcryptPassword
+        });
+        await user.save();
 
-        // 4. Create Profile entry (mandatory for onboarding) - NOW WITH NAME
-        await pool.query("INSERT INTO profiles (user_id, full_name) VALUES ($1, $2)", [newUser.rows[0].id, full_name || 'Student']);
+        // 4. Create Profile (Mandatory)
+        const profile = new Profile({
+            user: user._id,
+            full_name: full_name || 'Student',
+            current_stage: 2 // Move to onboarding
+        });
+        await profile.save();
 
-        // 5. Initialize Stage (Auth completed -> move to Onboarding)
-        await pool.query(
-            "INSERT INTO user_progress (user_id, current_stage_id) VALUES ($1, 2)",
-            [newUser.rows[0].id]
-        );
+        // 5. Generate JWT token
+        const token = jwtGenerator(user._id);
 
-        // 6. Generate JWT token
-        const token = jwtGenerator(newUser.rows[0].id);
-
-        // 7. Send Cookie
+        // 6. Send Cookie
         const isSecure = process.env.NODE_ENV === 'production' && (req.secure || req.headers['x-forwarded-proto'] === 'https');
 
         res.cookie('token', token, {
             httpOnly: true,
             secure: isSecure,
-            sameSite: isSecure ? 'none' : 'lax', // 'none' for cross-site cookie if https, 'lax' otherwise
+            sameSite: isSecure ? 'none' : 'lax',
             maxAge: 3600000 // 1 hour
         });
 
@@ -57,23 +58,27 @@ exports.login = async (req, res) => {
         const { email, password } = req.body;
 
         // 1. Check if user exists
-        const user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-        if (user.rows.length === 0) {
+        const user = await User.findOne({ email });
+        if (!user) {
             return res.status(401).json({ error: "Password or Email is incorrect" });
         }
 
-        // 2. Check if incoming password is valid
-        const validPassword = await bcrypt.compare(password, user.rows[0].password_hash);
+        // 2. Check password (if not Google auth user trying to login via password)
+        if (!user.password) {
+            return res.status(401).json({ error: "Please login with Google" });
+        }
+
+        const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
             return res.status(401).json({ error: "Password or Email is incorrect" });
         }
 
-        // 3. Get User Stage
-        const stageRes = await pool.query("SELECT current_stage_id FROM user_progress WHERE user_id = $1", [user.rows[0].id]);
-        const stage = stageRes.rows[0]?.current_stage_id || 1;
+        // 3. Get User Stage from Profile
+        const profile = await Profile.findOne({ user: user._id });
+        const stage = profile ? profile.current_stage : 1;
 
-        // 4. Give them the jwt token
-        const token = jwtGenerator(user.rows[0].id);
+        // 4. Generate Token
+        const token = jwtGenerator(user._id);
 
         // 5. Send Cookie
         const isSecure = process.env.NODE_ENV === 'production' && (req.secure || req.headers['x-forwarded-proto'] === 'https');
@@ -107,14 +112,18 @@ exports.logout = async (req, res) => {
     }
 };
 
-
 exports.getMe = async (req, res) => {
     try {
-        // req.user is already set by authorize middleware
-        const stageRes = await pool.query("SELECT current_stage_id FROM user_progress WHERE user_id = $1", [req.user.id]);
-        const stage = stageRes.rows[0]?.current_stage_id || 1;
+        // req.user is set by authorize middleware (payload.user -> { id: ... })
+        // We need to fetch the user details if needed, or just return id.
+        // Frontend expects: { isAuthenticated: true, stage, user: ... }
 
-        res.json({ isAuthenticated: true, stage, user: req.user });
+        const profile = await Profile.findOne({ user: req.user.id });
+        const stage = profile ? profile.current_stage : 1;
+
+        // Fetch full user obj if needed, but req.user usually just has ID from JWT
+        // Let's return basics
+        res.json({ isAuthenticated: true, stage, user: { id: req.user.id } });
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server Error");

@@ -1,28 +1,29 @@
-const pool = require('../../config/db');
+const Application = require('../models/Application');
+const University = require('../models/University'); // If used for looking up details
 
 exports.getApplications = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const query = `
-            SELECT 
-                lu.id as application_id,
-                lu.status,
-                lu.deadline,
-                lu.notes,
-                lu.locked_at,
-                u.id as university_id,
-                u.name as university_name,
-                u.country,
-                u.ranking
-            FROM locked_universities lu
-            JOIN universities u ON lu.university_id = u.id
-            WHERE lu.user_id = $1
-            ORDER BY lu.locked_at DESC
-        `;
+        const applications = await Application.find({ user: userId }).sort({ lockedAt: -1 });
 
-        const result = await pool.query(query, [userId]);
-        res.json(result.rows);
+        // Map to match frontend format
+        // Frontend expects: application_id, status, deadline, notes, locked_at, university_id, university_name, country, ranking
+        // Our Model: _id, universityId, universityName, country, ranking, status, deadline, notes, lockedAt
+
+        const response = applications.map(app => ({
+            application_id: app._id,
+            status: app.status,
+            deadline: app.deadline,
+            notes: app.notes,
+            locked_at: app.lockedAt,
+            university_id: app.universityId,
+            university_name: app.universityName,
+            country: app.country,
+            ranking: app.ranking
+        }));
+
+        res.json(response);
 
     } catch (err) {
         console.error(err.message);
@@ -36,22 +37,23 @@ exports.updateApplication = async (req, res) => {
         const { id } = req.params;
         const { status, deadline, notes } = req.body;
 
-        const updateQuery = `
-            UPDATE locked_universities 
-            SET status = COALESCE($1, status),
-                deadline = COALESCE($2, deadline),
-                notes = COALESCE($3, notes)
-            WHERE id = $4 AND user_id = $5
-            RETURNING *
-        `;
+        const updatedApp = await Application.findOneAndUpdate(
+            { _id: id, user: userId },
+            {
+                $set: {
+                    ...(status && { status }),
+                    ...(deadline && { deadline }),
+                    ...(notes && { notes })
+                }
+            },
+            { new: true }
+        );
 
-        const result = await pool.query(updateQuery, [status, deadline, notes, id, userId]);
-
-        if (result.rows.length === 0) {
+        if (!updatedApp) {
             return res.status(404).json("Application not found");
         }
 
-        res.json(result.rows[0]);
+        res.json(updatedApp);
 
     } catch (err) {
         console.error(err.message);
@@ -62,7 +64,7 @@ exports.updateApplication = async (req, res) => {
 exports.deleteApplication = async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query("DELETE FROM locked_universities WHERE id = $1 AND user_id = $2", [id, req.user.id]);
+        await Application.findOneAndDelete({ _id: id, user: req.user.id });
         res.json("Application removed");
     } catch (err) {
         console.error(err.message);

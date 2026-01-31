@@ -1,63 +1,79 @@
-const pool = require('../../config/db');
+const Application = require('../models/Application');
+const University = require('../models/University');
+const Profile = require('../models/Profile');
 
 exports.lockUniversity = async (req, res) => {
     try {
         const { university_id, university_data } = req.body;
         const user_id = req.user.id;
 
-        // 1. Check if University exists in DB (for external Hippo IDs)
-        const uniCheck = await pool.query("SELECT * FROM universities WHERE id = $1", [university_id]);
+        // 1. Check if University exists in DB (or create it)
+        let uni = await University.findOne({ sourceId: university_id }); // assuming frontend sends sourceId
 
-        if (uniCheck.rows.length === 0) {
+        // If not found by sourceId, maybe check by name? or create one.
+        // If the ID sent is from our DB (backend), then findById. 
+        // But likely it's external ID from Hippo.
+
+        if (!uni) {
+            // Try by ID just in case
+            try {
+                uni = await University.findById(university_id);
+            } catch (e) { }
+        }
+
+        if (!uni) {
             if (!university_data) {
                 return res.status(400).json({ error: "University not found and no data provided" });
             }
 
-            // Insert the new university from external API to our DB
-            await pool.query(
-                `INSERT INTO universities (id, name, country, ranking, tuition_fee, details) 
-                 VALUES ($1, $2, $3, $4, $5, $6)`,
-                [
-                    university_id, // Now a string (VARCHAR)
-                    university_data.name,
-                    university_data.country,
-                    university_data.ranking || 999,
-                    university_data.tuition_fee ? `${university_data.tuition_fee}` : 'N/A',
-                    JSON.stringify(university_data) // Store full object in details
-                ]
-            );
+            // Insert new university
+            uni = await University.create({
+                sourceId: university_id,
+                name: university_data.name,
+                country: university_data.country,
+                ranking: university_data.ranking || 999,
+                tuition_fee: university_data.tuition_fee ? `${university_data.tuition_fee}` : 'N/A',
+                details: university_data
+            });
         }
 
         // Check if already locked
-        const existingLock = await pool.query(
-            "SELECT * FROM locked_universities WHERE user_id = $1 AND university_id = $2",
-            [user_id, university_id]
-        );
+        const existingLock = await Application.findOne({ user: user_id, universityId: uni.sourceId || uni._id }); // Match by reference
+        // Note: Application model uses 'universityId' string field. 
+        // We should standardise on what we store. Ideally the University _id if possible, or sourceId.
+        // Let's store uni._id in 'universityId' field if it's a string, or simply keep consistency.
+        // Actually, Application schema defined universityId as string.
 
-        if (existingLock.rows.length > 0) {
+        if (existingLock) {
             return res.status(400).json({ error: "University already locked" });
         }
 
-        // Lock the university
-        const newLock = await pool.query(
-            "INSERT INTO locked_universities (user_id, university_id) VALUES ($1, $2) RETURNING *",
-            [user_id, university_id]
-        );
+        // Lock the university (Create Application)
+        const newLock = await Application.create({
+            user: user_id,
+            universityId: uni.sourceId || uni._id, // Store link
+            universityName: uni.name,
+            country: uni.country,
+            ranking: uni.ranking,
+            status: 'Draft',
+            lockedAt: Date.now()
+        });
 
-        // Check if this is first lock - advance to Application stage
-        const lockCount = await pool.query(
-            "SELECT COUNT(*) FROM locked_universities WHERE user_id = $1",
-            [user_id]
-        );
+        // Check count to update stage
+        const count = await Application.countDocuments({ user: user_id });
 
-        if (parseInt(lockCount.rows[0].count) >= 1) {
-            await pool.query(
-                "UPDATE user_progress SET current_stage_id = 7 WHERE user_id = $1 AND current_stage_id < 7",
-                [user_id]
-            );
+        let newStage = null;
+        if (count >= 1) {
+            // Update Profile stage to 7 (Application)
+            const profile = await Profile.findOne({ user: user_id });
+            if (profile && profile.current_stage < 7) {
+                profile.current_stage = 7;
+                await profile.save();
+                newStage = 7;
+            }
         }
 
-        res.json({ locked: newLock.rows[0], stage: 7 });
+        res.json({ locked: newLock, stage: newStage });
 
     } catch (err) {
         console.error(err.message);
@@ -70,27 +86,33 @@ exports.unlockUniversity = async (req, res) => {
         const { university_id } = req.params;
         const user_id = req.user.id;
 
-        await pool.query(
-            "DELETE FROM locked_universities WHERE user_id = $1 AND university_id = $2",
-            [user_id, university_id]
-        );
+        // Delete using universityId field match
+        // Note: user might be sending the Application ID or the University ID.
+        // REST standard usually implies DELETE /lock/:id -> id of the resource (Application/Lock).
+        // But the legacy code looked up by university_id.
+        // Let's support both or stick to legacy behavior: DELETE /lock/:university_id
 
-        // Check remaining locks - if 0, revert stage to LOCKING
-        const remaining = await pool.query(
-            "SELECT COUNT(*) FROM locked_universities WHERE user_id = $1",
-            [user_id]
-        );
+        // Find and delete
+        const result = await Application.findOneAndDelete({
+            user: user_id,
+            $or: [{ universityId: university_id }, { _id: university_id }]
+        });
+
+        // Check remaining
+        const count = await Application.countDocuments({ user: user_id });
 
         let newStage = 7;
-        if (parseInt(remaining.rows[0].count) === 0) {
-            await pool.query(
-                "UPDATE user_progress SET current_stage_id = 6 WHERE user_id = $1",
-                [user_id]
-            );
-            newStage = 6;
+        if (count === 0) {
+            // Revert to stage 6 (Locking/Shortlisting)
+            const profile = await Profile.findOne({ user: user_id });
+            if (profile) {
+                profile.current_stage = 6;
+                await profile.save();
+                newStage = 6;
+            }
         }
 
-        res.json({ unlocked: true, remainingLocks: parseInt(remaining.rows[0].count), stage: newStage });
+        res.json({ unlocked: true, remainingLocks: count, stage: newStage });
 
     } catch (err) {
         console.error(err.message);
@@ -101,16 +123,20 @@ exports.unlockUniversity = async (req, res) => {
 exports.getAllLocked = async (req, res) => {
     try {
         const user_id = req.user.id;
-        const result = await pool.query(
-            `SELECT l.id as lock_id, l.locked_at, u.* 
-             FROM locked_universities l
-             JOIN universities u ON l.university_id = u.id
-             WHERE l.user_id = $1
-             ORDER BY l.locked_at DESC`,
-            [user_id]
-        );
+        const apps = await Application.find({ user: user_id }).sort({ lockedAt: -1 });
 
-        res.json(result.rows);
+        // Map to legacy format expected by frontend
+        // Legacy: id, locked_at, name, country, etc. (mixed fields from join)
+        const result = apps.map(app => ({
+            lock_id: app._id,
+            locked_at: app.lockedAt,
+            id: app.universityId, // The ID of the university
+            name: app.universityName,
+            country: app.country,
+            ranking: app.ranking
+        }));
+
+        res.json(result);
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: "Server Error" });
@@ -118,21 +144,23 @@ exports.getAllLocked = async (req, res) => {
 };
 
 exports.getLockedUniversity = async (req, res) => {
+    // This seems to fetch A locked university? Or list? 
+    // Legacy SQL: SELECT ... FROM locked .. JOIN uni ... WHERE user_id
+    // Returns array but controller returns rows[0]. So it returns just ONE or first one?
+    // Used for "Single locked uni" view?
+
     try {
         const user_id = req.user.id;
-        const result = await pool.query(
-            `SELECT l.locked_at, u.name, u.country, u.ranking 
-             FROM locked_universities l
-             JOIN universities u ON l.university_id = u.id
-             WHERE l.user_id = $1`,
-            [user_id]
-        );
+        const app = await Application.findOne({ user: user_id });
 
-        if (result.rows.length === 0) {
-            return res.json(null);
-        }
+        if (!app) return res.json(null);
 
-        res.json(result.rows[0]);
+        res.json({
+            locked_at: app.lockedAt,
+            name: app.universityName,
+            country: app.country,
+            ranking: app.ranking
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: "Server Error" });
