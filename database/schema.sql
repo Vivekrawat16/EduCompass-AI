@@ -51,7 +51,7 @@ CREATE TABLE user_progress (
 
 -- Universities Table (Seed data or scraped)
 CREATE TABLE universities (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY, -- Changed from SERIAL to support external IDs
     name VARCHAR(255) NOT NULL,
     country VARCHAR(100),
     ranking INTEGER,
@@ -63,7 +63,7 @@ CREATE TABLE universities (
 CREATE TABLE shortlists (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    university_id INTEGER REFERENCES universities(id) ON DELETE CASCADE,
+    university_id VARCHAR(255) REFERENCES universities(id) ON DELETE CASCADE, -- Match type VARCHAR
     category VARCHAR(20) CHECK (category IN ('Dream', 'Target', 'Safe')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -72,7 +72,7 @@ CREATE TABLE shortlists (
 CREATE TABLE locked_universities (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    university_id INTEGER REFERENCES universities(id) ON DELETE CASCADE,
+    university_id VARCHAR(255) REFERENCES universities(id) ON DELETE CASCADE, -- Match type VARCHAR
     status VARCHAR(50) DEFAULT 'Draft',
     deadline TIMESTAMP WITH TIME ZONE,
     notes TEXT,
