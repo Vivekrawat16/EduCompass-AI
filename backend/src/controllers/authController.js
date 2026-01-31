@@ -36,9 +36,12 @@ exports.register = async (req, res) => {
         const token = jwtGenerator(newUser.rows[0].id);
 
         // 7. Send Cookie
+        const isSecure = process.env.NODE_ENV === 'production' && (req.secure || req.headers['x-forwarded-proto'] === 'https');
+
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: isSecure,
+            sameSite: isSecure ? 'none' : 'lax', // 'none' for cross-site cookie if https, 'lax' otherwise
             maxAge: 3600000 // 1 hour
         });
 
@@ -73,9 +76,12 @@ exports.login = async (req, res) => {
         const token = jwtGenerator(user.rows[0].id);
 
         // 5. Send Cookie
+        const isSecure = process.env.NODE_ENV === 'production' && (req.secure || req.headers['x-forwarded-proto'] === 'https');
+
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: isSecure,
+            sameSite: isSecure ? 'none' : 'lax',
             maxAge: 3600000 // 1 hour
         });
 
@@ -88,7 +94,12 @@ exports.login = async (req, res) => {
 
 exports.logout = async (req, res) => {
     try {
-        res.clearCookie('token');
+        const isSecure = process.env.NODE_ENV === 'production' && (req.secure || req.headers['x-forwarded-proto'] === 'https');
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: isSecure,
+            sameSite: isSecure ? 'none' : 'lax'
+        });
         res.json("Logged out successfully");
     } catch (err) {
         console.error(err.message);
