@@ -131,33 +131,7 @@ const ProfileMenu = () => {
                             </div>
                         </div>
 
-                        <div className="dropdown-divider"></div>
 
-                        {/* Status Section */}
-                        <div className="dropdown-section status-section">
-                            <div className="status-item">
-                                <span className="status-label">Current Stage</span>
-                                <div className="stage-badge">
-                                    Stage {userProfile.stage}: {userProfile.stageName}
-                                </div>
-                            </div>
-                            <div className="status-item">
-                                <span className="status-label">Profile Status</span>
-                                <div className={`profile-status-badge ${userProfile.isComplete ? 'complete' : 'incomplete'}`}>
-                                    {userProfile.isComplete ? (
-                                        <>
-                                            <CheckCircle size={14} />
-                                            <span>Complete</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <AlertCircle size={14} />
-                                            <span>Incomplete</span>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
 
                         <div className="dropdown-divider"></div>
 

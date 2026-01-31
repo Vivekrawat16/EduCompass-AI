@@ -241,6 +241,48 @@
     box-shadow: var(--edu-shadow-glow);
 }
 
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--edu-text-sub);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    z-index: 5;
+}
+
+.password-toggle:hover {
+    color: var(--edu-primary);
+}
+
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.forgot-password-link {
+    font-size: 0.8rem;
+    color: var(--edu-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline;
+}
+
 /* Primary Button */
 .btn-primary-glow {
     width: 100%;
@@ -288,14 +330,15 @@
 
 /* ========================================
    VERTICAL RESPONSIVENESS (Laptops & Small Screens)
+/* ========================================
+   VERTICAL RESPONSIVENESS (Laptops & Small Screens)
    ======================================== */
 
-@media (max-height: 800px) {
+@media (max-height: 900px) {
     .auth-card {
         padding: 1.5rem;
-        /* Shrink padding */
-        gap: 0.75rem;
-        /* Shrink gaps */
+        gap: 0.5rem;
+        max-width: 380px;
     }
 
     .auth-brand {
@@ -303,50 +346,51 @@
     }
 
     .brand-icon {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
     }
 
     .auth-brand span {
         font-size: 1.1rem;
     }
 
+    .auth-header {
+        margin-bottom: 0.5rem;
+    }
+
     .auth-header h2 {
-        font-size: 1.35rem;
-        margin-bottom: 0;
+        font-size: 1.25rem;
+        margin-bottom: 0.1rem;
     }
 
-    /* Hide subtitle on short screens to save space */
     .auth-header p {
-        display: none;
-    }
-
-    .google-btn {
-        padding: 0.6rem;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    .divider {
-        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+        margin: 0;
     }
 
     .auth-form {
-        gap: 0.65rem;
+        gap: 0.6rem;
+    }
+
+    .form-group {
+        gap: 0.2rem;
+    }
+
+    .form-group label {
+        font-size: 0.8rem;
     }
 
     .auth-input {
-        padding: 0.6rem 0.85rem;
+        padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
     }
 
     .btn-primary-glow {
-        padding: 0.7rem;
-        margin-top: 0.25rem;
+        margin-top: 0.5rem;
+        padding: 0.6rem;
     }
 
     .auth-footer {
-        margin-top: 0.25rem;
-        font-size: 0.8rem;
+        margin-top: 0.5rem;
     }
 }

@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Globe, ArrowRight, Lock } from 'lucide-react';
+import { Globe, ArrowRight, Lock, Eye, EyeOff } from 'lucide-react';
 import '../styles/Auth.css';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
@@ -59,15 +60,27 @@ const Login = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Password</label>
-                        <input
-                            className="auth-input"
-                            type="password"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+                        <div className="label-row">
+                            <label>Password</label>
+                            <Link to="/forgot-password" className="forgot-password-link">Forgot Password?</Link>
+                        </div>
+                        <div className="input-wrapper">
+                            <input
+                                className="auth-input"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                     </div>
 
                     <button type="submit" className="btn-primary-glow" disabled={isLoading}>

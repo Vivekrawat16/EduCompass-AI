@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Globe, ArrowRight, Lock, Check, Sparkles } from 'lucide-react';
+import { Globe, ArrowRight, Lock, Check, Sparkles, Eye, EyeOff } from 'lucide-react';
 import '../styles/Auth.css';
 
 const Signup = () => {
@@ -10,6 +10,8 @@ const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
@@ -82,25 +84,43 @@ const Signup = () => {
                     </div>
                     <div className="form-group">
                         <label>Create Password</label>
-                        <input
-                            className="auth-input"
-                            type="password"
-                            placeholder="Min. 8 characters"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                className="auth-input"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Min. 8 characters"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                     </div>
                     <div className="form-group">
                         <label>Confirm Password</label>
-                        <input
-                            className="auth-input"
-                            type="password"
-                            placeholder="Re-enter password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
+                        <div className="input-wrapper">
+                            <input
+                                className="auth-input"
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Re-enter password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                     </div>
 
                     <button type="submit" className="btn-primary-glow" disabled={isLoading}>

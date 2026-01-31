@@ -55,7 +55,8 @@ exports.chat = async (req, res) => {
     } catch (err) {
         console.error("[AICounsellor] Error:", err.message);
         res.status(500).json({
-            message: "I'm having trouble connecting to my brain right now. Please try again.",
+            message: "I'm having trouble connecting right now. Please try again.",
+            debug: process.env.NODE_ENV === 'development' ? err.message : undefined,
             actions: []
         });
     }

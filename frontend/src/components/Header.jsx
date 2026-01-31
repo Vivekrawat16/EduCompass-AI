@@ -19,6 +19,7 @@ const Header = () => {
             </div>
             <div className="nav-links">
                 <Link to="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>
+                <Link to="/chat" className={isActive('/chat')}>AI Counsellor</Link>
                 <Link to="/discovery" className={isActive('/discovery')}>Universities</Link>
                 <Link to="/tracker" className={isActive('/tracker')}>Applications</Link>
             </div>

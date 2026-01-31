@@ -71,7 +71,7 @@
     position: absolute;
     top: calc(100% + 0.8rem);
     right: 0;
-    width: 320px;
+    width: 360px;
     background: #FFFFFF;
     border: 1px solid var(--edu-border-subtle, rgba(0, 0, 0, 0.05));
     border-radius: 16px;

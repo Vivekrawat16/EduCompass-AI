@@ -55,82 +55,130 @@ const LandingPage = () => {
                 </motion.div>
 
                 {/* Visuals */}
+                {/* Hero Image Integration */}
                 <div className="hero-visual">
                     <div className="visual-bg"></div>
-
-                    <motion.div
-                        className="floating-card card-1"
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        <div className="icon-box">
-                            <Zap size={24} />
-                        </div>
-                        <div className="floating-card-content">
+                    <motion.img
+                        src="/hero-globe.png"
+                        alt="Global Education"
+                        className="hero-3d-image"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 1 }}
+                    />
+                    {/* Floating Badges */}
+                    <motion.div className="floating-card card-match" animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }}>
+                        <div className="icon-box"><Zap size={20} /></div>
+                        <div className="content">
                             <h4>AI Match</h4>
                             <p>98% Compatibility</p>
                         </div>
                     </motion.div>
-
-                    <motion.div
-                        className="floating-card card-2"
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4 }}
-                    >
-                        <div className="icon-box">
-                            <Target size={24} />
-                        </div>
-                        <div className="floating-card-content">
-                            <h4>Profile Score</h4>
-                            <p>Strong Applicant</p>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        className="floating-card card-3"
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6 }}
-                    >
-                        <div className="icon-box">
-                            <Globe size={24} />
-                        </div>
-                        <div className="floating-card-content">
-                            <h4>Global Reach</h4>
-                            <p>500+ Universities</p>
-                        </div>
-                    </motion.div>
                 </div>
             </section>
 
-            {/* Features */}
+            {/* Stats Section */}
+            <section className="stats-section">
+                <div className="stat-item">
+                    <h2>5000+</h2>
+                    <p>Students Placed</p>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item">
+                    <h2>$2M+</h2>
+                    <p>Scholarships Won</p>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item">
+                    <h2>98%</h2>
+                    <p>Visa Success Rate</p>
+                </div>
+            </section>
+
+            {/* Features (Refined) */}
             <section className="features-section">
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <Sparkles size={32} />
-                    </div>
-                    <h3>AI Counselor</h3>
-                    <p>Get personalized university recommendations based on your academic profile, interests, and career goals.</p>
+                <div className="section-header">
+                    <h2>Why Choose EduCompass?</h2>
+                    <p>The only platform that combines AI precision with human expertise.</p>
                 </div>
-
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <BookOpen size={32} />
+                <div className="features-grid">
+                    <div className="feature-card">
+                        <div className="feature-icon"><Sparkles size={28} /></div>
+                        <h3>AI Counselor</h3>
+                        <p>Get personalized university recommendations based on your academic profile, interests, and career goals.</p>
                     </div>
-                    <h3>Smart Discovery</h3>
-                    <p>Access a comprehensive database of global universities with detailed insights on acceptance rates and tuition.</p>
-                </div>
-
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <TrendingUp size={32} />
+                    <div className="feature-card">
+                        <div className="feature-icon"><BookOpen size={28} /></div>
+                        <h3>Smart Discovery</h3>
+                        <p>Access a comprehensive database of global universities with detailed insights on acceptance rates and tuition.</p>
                     </div>
-                    <h3>Application Tracker</h3>
-                    <p>Stay organized with a visual Kanban board to track deadlines, documents, and application statuses.</p>
+                    <div className="feature-card">
+                        <div className="feature-icon"><TrendingUp size={28} /></div>
+                        <h3>Application Tracker</h3>
+                        <p>Stay organized with a visual Kanban board to track deadlines, documents, and application statuses.</p>
+                    </div>
                 </div>
             </section>
+
+            {/* How It Works */}
+            <section className="process-section">
+                <div className="section-header">
+                    <h2>Your Journey to Success</h2>
+                    <p>Simple steps to your dream university.</p>
+                </div>
+                <div className="process-steps">
+                    <div className="step-card">
+                        <div className="step-number">01</div>
+                        <h3>Create Profile</h3>
+                        <p>Input your grades, interests, and budget. Our AI builds your unique academic identity.</p>
+                    </div>
+                    <div className="step-card">
+                        <div className="step-number">02</div>
+                        <h3>Get Matched</h3>
+                        <p>Receive a tailored list of Dream, Target, and Safe universities with admission predictions.</p>
+                    </div>
+                    <div className="step-card">
+                        <div className="step-number">03</div>
+                        <h3>Apply & Track</h3>
+                        <p>Use our step-by-step guidance to submit applications and track decision status.</p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="landing-footer">
+                <div className="footer-container">
+                    <div className="footer-col footer-brand">
+                        <h3><Globe size={24} /> EduCompass AI</h3>
+                        <p>Empowering students to achieve their global education dreams through intelligent guidance.</p>
+                    </div>
+
+                    <div className="footer-col">
+                        <h4>Platform</h4>
+                        <ul className="footer-links">
+                            <li><Link to="/universities">Universities</Link></li>
+                            <li><Link to="/signup">Start Free</Link></li>
+                            <li><Link to="/login">Sign In</Link></li>
+                        </ul>
+                    </div>
+
+                    <div className="footer-col">
+                        <h4>Company</h4>
+                        <ul className="footer-links">
+                            <li><Link to="/contact">Contact Us</Link></li>
+                            <li><Link to="/privacy">Privacy Policy</Link></li>
+                            <li><Link to="/terms">Terms of Service</Link></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="footer-bottom">
+                    <p>&copy; {new Date().getFullYear()} EduCompass AI. All rights reserved.</p>
+                    <div className="social-links">
+                        {/* Placeholder for social icons */}
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };

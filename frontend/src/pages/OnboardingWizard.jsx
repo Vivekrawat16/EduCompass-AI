@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, GraduationCap, Globe, DollarSign, BrainCircuit, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, Globe, DollarSign, BrainCircuit, Sparkles, AlertCircle } from 'lucide-react';
 import api from '../utils/api';
 import '../styles/OnboardingWizard.css';
 
@@ -53,6 +53,7 @@ const OnboardingWizard = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     // Form Data State
     const [formData, setFormData] = useState({
@@ -85,9 +86,43 @@ const OnboardingWizard = () => {
 
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+        if (error) setError(''); // Clear error on change
+    };
+
+    const validateStep = (currentStep, data) => {
+        switch (currentStep) {
+            case 1: // Academic
+                if (!data.education_level) return "Please select your education level.";
+                if (!data.graduation_year) return "Please select your graduation year.";
+                if (data.education_level === "High School") {
+                    if (!data.school_board) return "Please select your school board.";
+                    if (!data.gpa) return "Please enter your Percentage or CGPA.";
+                } else {
+                    if (!data.degree_major) return "Please select your major/stream.";
+                    if (!data.gpa) return "Please enter your GPA or CGPA.";
+                }
+                return null;
+            case 2: // Goals
+                if (!data.target_degree) return "Please select a target degree.";
+                if (!data.target_country) return "Please select a target country.";
+                if (!data.target_major) return "Please select a target major.";
+                return null;
+            case 3: // Budget
+                if (!data.budget) return "Please select an estimated annual budget.";
+                if (!data.funding_type) return "Please select your primary funding source.";
+                return null;
+            default:
+                return null;
+        }
     };
 
     const nextStep = async () => {
+        const validationError = validateStep(step, formData);
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
         setLoading(true);
         try {
             const response = await api.post('/profile/save-step', { step, data: formData });
@@ -95,6 +130,7 @@ const OnboardingWizard = () => {
 
             if (step < 5) {
                 setStep(prev => prev + 1);
+                window.scrollTo(0, 0); // Scroll to top
 
                 // Trigger AI Analysis for the completed step
                 window.dispatchEvent(new CustomEvent('ai-analyze', {
@@ -111,6 +147,7 @@ const OnboardingWizard = () => {
 
         } catch (err) {
             console.error("Failed to save step", err);
+            setError("Failed to save progress. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -148,7 +185,7 @@ const OnboardingWizard = () => {
                         animate="visible"
                         exit="exit"
                         transition={{ duration: 0.3 }}
-                        className="step-card"
+                        className="wizard-card"
                     >
                         {step === 1 && <StepAcademic formData={formData} handleChange={handleChange} SelectWithCustom={SelectWithCustom} />}
                         {step === 2 && <StepGoals formData={formData} handleChange={handleChange} SelectWithCustom={SelectWithCustom} />}
@@ -160,6 +197,12 @@ const OnboardingWizard = () => {
             </div>
 
             <div className="wizard-footer">
+                {error && (
+                    <div className="error-banner">
+                        <AlertCircle size={18} />
+                        <span>{error}</span>
+                    </div>
+                )}
                 {step > 1 && (
                     <button className="btn-secondary" onClick={prevStep} disabled={loading}>
                         <ChevronLeft size={18} /> Back
