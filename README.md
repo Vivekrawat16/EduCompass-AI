@@ -1,6 +1,8 @@
-# EduCompass AI
+⁸# EduCompass AI
 
 An intelligent AI-powered counsellor application to help students navigate their study abroad journey.
+
+live -https://educompass-ai.duckdns.org/
 
 ## Features
 
